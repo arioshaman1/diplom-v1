@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет - GetEmployed</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<nav class="navbar">
+    <div class="container">
+        <a href="/" class="logo">Get<span>Employed</span></a>
+        <div class="nav-links">
+            <a href="/dashboard.html">Личный кабинет</a>
+            <a href="#profile">Профиль</a>
+            <a href="#settings">Настройки</a>
+            <a href="#" id="logoutBtn" class="btn btn-outline">Выйти</a>
+        </div>
+        <button class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</nav>
+
+<div class="container" style="padding-top: 100px;">
+    <h1>Личный кабинет</h1>
+
+    <div id="message" class="message" style="display: none;"></div>
+
+    <div class="user-info" style="background: white; padding: 2rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin-bottom: 2rem;">
+        <h2 id="userName">Загрузка...</h2>
+        <p id="userEmail">Загрузка...</p>
+        <p id="userCreated">Загрузка...</p>
+        <p id="userRoles">Загрузка...</p>
+    </div>
+
+    <div class="dashboard-actions">
+        <button class="btn btn-primary" onclick="loadUserData()">
+            <i class="fas fa-sync-alt"></i> Обновить данные
+        </button>
+        <button class="btn btn-outline" onclick="showUpdateForm()">
+            <i class="fas fa-edit"></i> Редактировать профиль
+        </button>
+    </div>
+
+    <!-- Форма обновления профиля (скрыта по умолчанию) -->
+    <div id="updateForm" style="display: none; margin-top: 2rem;">
+        <div class="auth-box">
+            <h3>Редактировать профиль</h3>
+            <form id="updateProfileForm">
+                <div class="form-group">
+                    <label for="updateName">Имя</label>
+                    <input type="text" id="updateName" name="name">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="updateEnabled" name="enabled">
+                        Аккаунт активен
+                    </label>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <button type="button" class="btn btn-outline" onclick="hideUpdateForm()">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+    // Мобильное меню
+    document.querySelector('.menu-toggle').addEventListener('click', function() {
+        document.querySelector('.nav-links').classList.toggle('show');
+    });
+
+    // Выход из системы
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        auth.logout();
+    });
+
+    // Загрузка данных пользователя
+    async function loadUserData() {
+        try {
+            const user = auth.getCurrentUser();
+
+            if (!user) {
+                throw new Error('Пользователь не найден');
+            }
+
+            // Обновляем данные с сервера
+            const updatedUser = await api.getUserByEmail(user.email);
+
+            // Сохраняем обновленные данные
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            // Отображаем данные
+            document.getElementById('userName').textContent = `Имя: ${updatedUser.name || 'Не указано'}`;
+            document.getElementById('userEmail').textContent = `Email: ${updatedUser.email}`;
+            document.getElementById('userCreated').textContent = `Дата регистрации: ${new Date(updatedUser.createdAt).toLocaleDateString('ru-RU')}`;
+            document.getElementById('userRoles').textContent = `Роли: ${updatedUser.roles.join(', ')}`;
+
+            showMessage('Данные обновлены', 'success');
+
+        } catch (error) {
+            showMessage('Ошибка загрузки данных: ' + error.message, 'error');
+        }
+    }
+
+    // Показать форму обновления
+    function showUpdateForm() {
+        const user = auth.getCurrentUser();
+        if (user) {
+            document.getElementById('updateName').value = user.name || '';
+            document.getElementById('updateEnabled').checked = user.enabled;
+            document.getElementById('updateForm').style.display = 'block';
+        }
+    }
+
+    // Скрыть форму обновления
+    function hideUpdateForm() {
+        document.getElementById('updateForm').style.display = 'none';
+    }
+
+    // Обновление профиля
+    document.getElementById('updateProfileForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const name = document.getElementById('updateName').value;
+        const enabled = document.getElementById('updateEnabled').checked;
+
+        const user = auth.getCurrentUser();
+
+        try {
+            const updatedUser = await api.updateUser(user.id, {
+                name: name || undefined,
+                enabled: enabled
+            });
+
+            // Обновляем данные в localStorage
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            // Обновляем отображение
+            loadUserData();
+            hideUpdateForm();
+
+            showMessage('Профиль успешно обновлен', 'success');
+
+        } catch (error) {
+            showMessage('Ошибка обновления профиля: ' + error.message, 'error');
+        }
+    });
+
+    function showMessage(text, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = text;
+        messageDiv.className = `message ${type}`;
+        messageDiv.style.display = 'block';
+
+        // Автоскрытие сообщений
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    // Загружаем данные при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        // Проверяем авторизацию
+        if (!auth.isAuthenticated()) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // Загружаем данные пользователя
+        loadUserData();
+    });
+</script>
+</body>
+</html>

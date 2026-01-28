@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetEmployed - Поиск работы</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<!-- Навигация -->
+<nav class="navbar">
+    <div class="container">
+        <a href="/" class="logo">Get<span>Employed</span></a>
+        <div class="nav-links">
+            <a href="/">Главная</a>
+            <a href="#features">Возможности</a>
+            <a href="#about">О нас</a>
+            <a href="/login.html" class="btn btn-outline">Войти</a>
+            <a href="/register.html" class="btn btn-primary">Регистрация</a>
+        </div>
+        <button class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</nav>
+
+<!-- Герой-секция -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Найди работу своей мечты</h1>
+            <p>Платформа для поиска работы и развития карьеры. Тысячи вакансий от ведущих компаний.</p>
+            <div class="hero-buttons">
+                <a href="/register.html" class="btn btn-primary btn-large">Начать бесплатно</a>
+                <a href="#features" class="btn btn-outline btn-large">Узнать больше</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Карьера">
+        </div>
+    </div>
+</section>
+
+<!-- Возможности -->
+<section id="features" class="features">
+    <div class="container">
+        <h2>Наши возможности</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>Умный поиск</h3>
+                <p>Находите вакансии, соответствующие вашим навыкам и опыту</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>Резюме онлайн</h3>
+                <p>Создайте и управляйте профессиональным резюме</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Аналитика карьеры</h3>
+                <p>Отслеживайте прогресс и получайте рекомендации</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- О нас -->
+<section id="about" class="about">
+    <div class="container">
+        <h2>О платформе</h2>
+        <p>GetEmployed - это современная платформа для поиска работы и развития карьеры. Мы помогаем соискателям найти идеальную работу, а работодателям - талантливых сотрудников.</p>
+    </div>
+</section>
+
+<!-- Футер -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>GetEmployed</h3>
+                <p>Платформа для карьерного роста</p>
+            </div>
+            <div class="footer-section">
+                <h3>Контакты</h3>
+                <p>email: info@getemployed.com</p>
+                <p>телефон: +7 (999) 123-45-67</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 GetEmployed. Все права защищены.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+    // Мобильное меню
+    document.querySelector('.menu-toggle').addEventListener('click', function() {
+        document.querySelector('.nav-links').classList.toggle('show');
+    });
+
+    // Проверка авторизации
+    auth.checkAuth();
+</script>
+</body>
+</html>
