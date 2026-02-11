@@ -1,15 +1,21 @@
 services:
   postgres:
     image: postgres:16
-    container_name: career-postgres
+    container_name: getemployed-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: career_trajectory
-      POSTGRES_USER: career
-      POSTGRES_PASSWORD: career
+      POSTGRES_DB: getemployed
+      POSTGRES_USER: getemployed
+      POSTGRES_PASSWORD: getemployed
     ports:
       - "5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - getemployed_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U getemployed -d getemployed"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
-  pgdata:
+  getemployed_pgdata:

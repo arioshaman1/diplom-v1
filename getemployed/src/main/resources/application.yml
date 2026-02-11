@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/career_trajectory
-    username: career
-    password: career
+    url: jdbc:postgresql://localhost:5433/getemployed
+    username: getemployed
+    password: getemployed
 
   jpa:
     hibernate:

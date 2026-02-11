@@ -26,19 +26,18 @@ public class UserService {
 
     @Transactional
     public UserDto.Response createUser(UserDto.CreateRequest request) {
-        // Проверка уникальности email
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResourceAlreadyExistsException("Пользователь с таким email уже существует");
         }
 
-        // Создание пользователя
+
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setName(request.getName());
         user.setEnabled(true);
 
-        // Добавление роли USER по умолчанию
+
         Role userRole = roleRepository.findByName(Role.ROLE_USER)
                 .orElseThrow(() -> new ResourceNotFoundException("Роль USER не найдена"));
         user.addRole(userRole);
