@@ -1,9 +1,7 @@
 package com.start.getemployed.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -15,7 +13,10 @@ import java.util.Set;
 @Entity
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(exclude = "roles")
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -52,7 +53,6 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    // Вспомогательные методы
     public void addRole(Role role) {
         this.roles.add(role);
     }
