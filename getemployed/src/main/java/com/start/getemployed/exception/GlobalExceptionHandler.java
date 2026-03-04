@@ -1,12 +1,11 @@
-package com.start.getemployed;
+package com.start.getemployed.exception;
 
-
+import com.start.getemployed.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import java.time.LocalDateTime;
 
 @Slf4j
@@ -16,7 +15,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
 
-        log.error("UNHANDLED EXCEPTION", ex);  // <-- теперь работает
+        log.error("UNHANDLED EXCEPTION", ex);
 
         ErrorResponse response = new ErrorResponse(
                 LocalDateTime.now(),

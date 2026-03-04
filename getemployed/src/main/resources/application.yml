@@ -1,8 +1,36 @@
+server:
+  port: 8080
+
 spring:
+
   datasource:
     url: jdbc:postgresql://localhost:5433/getemployed
     username: getemployed
     password: getemployed
+
+  mail:
+    host: smtp.mail.ru
+    port: 465
+    username: getemployedemailsender@mail.ru
+    password: getemployed
+    properties:
+      mail:
+        smtp:
+          auth: true
+          debug: true
+          ssl:
+            enable: true
+            trust: smtp.mail.ru
+
+app:
+  frontend:
+     verify-url-pattern: http://localhost:3000/verify?token=%s
+  security:
+    email-token-pepper: "getemployed"
+    email-token-ttl-minutes: 30
+  verify:
+    base-url: http://localhost:8080
+    token-ttl-minutes: 60
 
   jpa:
     hibernate:
@@ -12,26 +40,20 @@ spring:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
 
-logging:
-  level:
-    org:
-      springframework:
-        aop: DEBUG
-        beans:
-          factory:
-            support: INFO
-        web: DEBUG
-
-
-server:
-  error:
-    include-message: always
-    include-stacktrace: always
-
-  port: 8080
+  kafka:
+      bootstrap-servers: localhost:9092
+      consumer:
+        group-id: email-service
+        auto-offset-reset: earliest
+        properties:
+          spring.json.trusted.packages: "com.start.getemployed"
+      producer:
+        properties:
+          spring.json.add.type.headers: false
 
 
 jwt:
   secret: "getemployed"
   ttl-minutes: 60
+
 

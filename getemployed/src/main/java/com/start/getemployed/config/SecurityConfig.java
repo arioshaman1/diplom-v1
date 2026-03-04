@@ -1,10 +1,8 @@
 package com.start.getemployed.config;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -35,12 +33,13 @@ public class SecurityConfig {
                                 "/api/v1/users/health",
                                 "/api/v1/users",
                                 "/api/v1/auth/**",
-                                "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**"
+                                "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**",
+                                "/test-mail"
                         ).permitAll()
-                        .requestMatchers("/api/**").authenticated()
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users")
-                        .permitAll()
+                        .requestMatchers("/").authenticated()
+                        .requestMatchers("/").permitAll()
+                        .anyRequest().authenticated()
+
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
 

@@ -29,8 +29,6 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResourceAlreadyExistsException("Пользователь с таким email уже существует");
         }
-
-
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
@@ -129,5 +127,39 @@ public class UserService {
         response.setRoles(roleNames);
 
         return response;
+    }
+    @Transactional
+    public User registerDisabled(String email, String password) {
+        String normalized = email.toLowerCase().trim();
+
+        if (userRepository.existsByEmail(normalized)) {
+            throw new IllegalArgumentException("Email already in use");
+        }
+
+        User u = new User();
+        u.setEmail(normalized);
+        u.setPasswordHash(passwordEncoder.encode(password));
+        u.setEnabled(false);
+
+        Role userRole = roleRepository.findByName(Role.ROLE_USER)
+                .orElseThrow(() -> new ResourceNotFoundException("Роль USER не найдена"));
+        u.addRole(userRole);
+
+        User savedUser = userRepository.save(u);
+        return userRepository.save(savedUser);
+
+    }
+
+    @Transactional
+    public void enableByEmail(String email) {
+        String normalized = email.toLowerCase().trim();
+
+        User user = userRepository.findByEmail(normalized)
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
+
+        if (!user.isEnabled()) {
+            user.setEnabled(true);
+            userRepository.save(user);
+        }
     }
 }

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Подтверждение почты</title>
+</head>
+
+<body style="margin:0;padding:0;background:#f6f7fb;font-family:Arial,Helvetica,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f7fb;padding:24px 0;">
+    <tr>
+        <td align="center">
+
+            <table width="600" cellpadding="0" cellspacing="0"
+                   style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.08);">
+
+                <tr>
+                    <td style="padding:22px 26px;background:linear-gradient(90deg,#3b82f6,#7c3aed);color:#fff;">
+                        <div style="font-size:20px;font-weight:700;">GetEmployed</div>
+                        <div style="opacity:.9;font-size:13px;margin-top:4px;">
+                            Подтверждение электронной почты
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:28px;">
+
+                        <div style="font-size:18px;font-weight:700;color:#111827;">
+                            Привет, <span th:text="${name}">User</span> 👋
+                        </div>
+
+                        <div style="margin-top:14px;font-size:14px;line-height:1.6;color:#374151;">
+                            Спасибо за регистрацию в <b>GetEmployed</b>.
+                            Чтобы завершить регистрацию, подтвердите свою электронную почту.
+                        </div>
+
+                        <div style="margin-top:18px;padding:16px;background:#f3f4f6;border-radius:10px;font-size:13px;">
+                            Ссылка действительна <b th:text="${ttlMinutes}">30</b> минут.
+                        </div>
+
+                        <div style="margin-top:22px;text-align:center;">
+                            <a th:href="${actionUrl}"
+                               style="display:inline-block;padding:14px 20px;border-radius:10px;background:#111827;color:#fff;text-decoration:none;font-weight:700;">
+                                Подтвердить email
+                            </a>
+                        </div>
+
+                        <div style="margin-top:18px;font-size:12px;color:#6b7280;">
+                            Если кнопка не работает, откройте ссылку вручную:
+                            <div style="word-break:break-all;margin-top:6px;" th:text="${actionUrl}">
+                                verification-link
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:16px 26px;background:#fafafa;color:#6b7280;font-size:12px;">
+                        Это письмо отправлено автоматически. Не отвечайте на него.
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

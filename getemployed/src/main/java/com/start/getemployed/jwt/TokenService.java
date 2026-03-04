@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,7 +23,6 @@ public class TokenService {
         this.ttlMinutes = ttlMinutes;
     }
 
-
     public String generateToken(Authentication auth) {
         Instant now = Instant.now();
 
@@ -34,6 +35,21 @@ public class TokenService {
                 .issuedAt(now)
                 .expiresAt(now.plus(ttlMinutes, ChronoUnit.MINUTES))
                 .subject(auth.getName())
+                .claim("scope", scope)
+                .build();
+
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+        return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+    }
+    public String generateTokenFromSubjectAndRoles(String subject, Set<String> roles) {
+        Instant now = Instant.now();
+        String scope = String.join(" ", roles);
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plus(ttlMinutes, ChronoUnit.MINUTES))
+                .subject(subject)
                 .claim("scope", scope)
                 .build();
 
