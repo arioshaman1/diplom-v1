@@ -11,8 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,8 +32,6 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setName(request.getName());
         user.setEnabled(true);
-
-
         Role userRole = roleRepository.findByName(Role.ROLE_USER)
                 .orElseThrow(() -> new ResourceNotFoundException("Роль USER не найдена"));
         user.addRole(userRole);
@@ -129,7 +125,7 @@ public class UserService {
         return response;
     }
     @Transactional
-    public User registerDisabled(String email, String password) {
+    public User registerDisabled(String email, String password, String name) {
         String normalized = email.toLowerCase().trim();
 
         if (userRepository.existsByEmail(normalized)) {
@@ -139,6 +135,7 @@ public class UserService {
         User u = new User();
         u.setEmail(normalized);
         u.setPasswordHash(passwordEncoder.encode(password));
+        u.setName(name);
         u.setEnabled(false);
 
         Role userRole = roleRepository.findByName(Role.ROLE_USER)

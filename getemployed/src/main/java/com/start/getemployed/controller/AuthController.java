@@ -77,7 +77,7 @@ public class AuthController {
     }
     @PostMapping("/register")
     public Map<String, String> register(@RequestBody UserDto.CreateRequest req) {
-        User user = userService.registerDisabled(req.getEmail(), req.getPassword());
+        User user = userService.registerDisabled(req.getEmail(), req.getPassword(), req.getName());
         emailVerificationService.issueAndPublish(user);
         return Map.of("status", "verification_sent");
     }
