@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -112,6 +113,13 @@ public class AuthController {
         );
         return "sent";
     }
+
+    @PostMapping("/verify")
+    public ResponseEntity<Void> verify(@RequestParam("token") String token) {
+        emailVerificationService.verify(token);
+        return ResponseEntity.ok().build();
+    }
+
 
     @PostMapping("/logout")
     public Map<String, String> logout(HttpServletRequest httpReq,
