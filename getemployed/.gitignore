@@ -38,3 +38,8 @@ out/
 
 .env
 .env.*
+replacements.txt
+.DS_Store
+**/.DS_Store
+._*
+.!*.DS_Store
