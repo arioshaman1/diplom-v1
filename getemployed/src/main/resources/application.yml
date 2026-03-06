@@ -21,7 +21,6 @@ spring:
           ssl:
             enable: true
             trust: smtp.mail.ru
-        debug: true
 
 
 
