@@ -1,0 +1,26 @@
+spring:
+  liquibase:
+    enabled: false
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+  mail:
+    username: test@example.com
+    password: test-password
+
+app:
+  frontend:
+    verify-url-pattern: http://localhost:3000/verify?token=%s
+  security:
+    email-token-pepper: test-pepper
+    email-token-ttl-minutes: 30
+  verify:
+    base-url: http://localhost:8080
+    token-ttl-minutes: 60
+
+jwt:
+  secret: test-jwt-secret-test-jwt-secret-test-jwt-secret
+  ttl-minutes: 60

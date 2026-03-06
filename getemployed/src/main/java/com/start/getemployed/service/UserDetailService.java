@@ -9,17 +9,18 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserDetailService {
-    @Bean
-    public UserDetailsService userDetailsService(UserRepository repo) {
-        return email -> repo.findByEmail(email.toLowerCase())
-                .map(u -> org.springframework.security.core.userdetails.User
-                        .withUsername(u.getEmail())
+  @Bean
+  public UserDetailsService userDetailsService(UserRepository repo) {
+    return email ->
+        repo.findByEmail(email.toLowerCase())
+            .map(
+                u ->
+                    org.springframework.security.core.userdetails.User.withUsername(u.getEmail())
                         .password(u.getPasswordHash())
                         .disabled(!u.isEnabled())
                         .authorities(
-                                u.getRoles().stream().map(Role::getName).toArray(String[]::new)
-                        )
+                            u.getRoles().stream().map(Role::getName).toArray(String[]::new))
                         .build())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
-    }
+            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+  }
 }

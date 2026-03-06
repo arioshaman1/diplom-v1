@@ -1,12 +1,12 @@
 package com.start.getemployed.repository;
 
 import com.start.getemployed.entity.EmailVerificationToken;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+public interface EmailVerificationTokenRepository
+    extends JpaRepository<EmailVerificationToken, Long> {
+  Optional<EmailVerificationToken> findByTokenHash(String tokenHash);
 
-public interface EmailVerificationTokenRepository extends JpaRepository<EmailVerificationToken, Long> {
-    Optional<EmailVerificationToken> findByTokenHash(String tokenHash);
-
-    String tokenHash(String token);
+  String tokenHash(String token);
 }
