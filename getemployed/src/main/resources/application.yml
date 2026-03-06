@@ -6,13 +6,13 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5433/getemployed
     username: getemployed
-    password: getemployed
+    password: ${DB_PASSWORD}
 
   mail:
     host: smtp.mail.ru
     port: 465
     username: getemployedemailsender@mail.ru
-    password: getemployed
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -46,7 +46,7 @@ app:
   frontend:
      verify-url-pattern: http://localhost:3000/verify?token=%s
   security:
-    email-token-pepper: "getemployed"
+    email-token-pepper: ${EMAIL_TOKEN_PEPPER}
     email-token-ttl-minutes: 30
   verify:
     base-url: http://localhost:8080
@@ -62,7 +62,7 @@ app:
 
 
 jwt:
-  secret: "getemployed"
+  secret: ${JWT_SECRET}
   ttl-minutes: 60
 
 
