@@ -1,7 +1,7 @@
-package com.start.getemployed.controller;
+package com.start.getemployed.auth.controller;
 
-import com.start.getemployed.dto.UserDto;
-import com.start.getemployed.service.UserService;
+import com.start.getemployed.auth.dto.UserDto;
+import com.start.getemployed.auth.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

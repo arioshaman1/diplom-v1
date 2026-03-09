@@ -1,4 +1,4 @@
-package com.start.getemployed.config;
+package com.start.getemployed.common.config;
 
 import java.util.List;
 import org.springframework.context.annotation.Bean;

@@ -1,11 +1,10 @@
-package com.start.getemployed.service;
+package com.start.getemployed.notification.service;
 
-import com.start.getemployed.VerificationTokenGen;
 import com.start.getemployed.entity.EmailVerificationToken;
 import com.start.getemployed.entity.User;
-import com.start.getemployed.kafka.EmailEventProducer;
-import com.start.getemployed.kafka.SendVerifyEmailEvent;
-import com.start.getemployed.repository.EmailVerificationTokenRepository;
+import com.start.getemployed.notification.kafka.EmailEventProducer;
+import com.start.getemployed.notification.kafka.SendVerifyEmailEvent;
+import com.start.getemployed.notification.email.EmailVerificationTokenRepository;
 import java.time.Duration;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;

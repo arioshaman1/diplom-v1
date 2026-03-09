@@ -1,13 +1,13 @@
-package com.start.getemployed.controller;
+package com.start.getemployed.auth.controller;
 
 import com.start.getemployed.auth.LoginRequest;
-import com.start.getemployed.dto.UserDto;
+import com.start.getemployed.auth.dto.UserDto;
+import com.start.getemployed.auth.jwt.TokenService;
+import com.start.getemployed.auth.service.RefreshTokenService;
 import com.start.getemployed.entity.User;
-import com.start.getemployed.jwt.TokenService;
-import com.start.getemployed.service.EmailSenderService;
-import com.start.getemployed.service.EmailVerificationService;
-import com.start.getemployed.service.RefreshTokenService;
-import com.start.getemployed.service.UserService;
+import com.start.getemployed.notification.service.EmailSenderService;
+import com.start.getemployed.notification.service.EmailVerificationService;
+import com.start.getemployed.auth.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

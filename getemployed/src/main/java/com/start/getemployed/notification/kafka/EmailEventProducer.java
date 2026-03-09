@@ -1,4 +1,4 @@
-package com.start.getemployed.kafka;
+package com.start.getemployed.notification.kafka;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package com.start.getemployed.service;
+package com.start.getemployed.notification.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

@@ -1,4 +1,4 @@
-package com.start.getemployed.config;
+package com.start.getemployed.common.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

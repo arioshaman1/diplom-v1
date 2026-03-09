@@ -1,4 +1,4 @@
-package com.start.getemployed.config;
+package com.start.getemployed.common.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

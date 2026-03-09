@@ -1,7 +1,7 @@
-package com.start.getemployed.kafka;
+package com.start.getemployed.notification.kafka;
 
-import com.start.getemployed.VerificationTokenGen;
-import com.start.getemployed.service.EmailSenderService;
+import com.start.getemployed.notification.service.VerificationTokenGen;
+import com.start.getemployed.notification.service.EmailSenderService;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
