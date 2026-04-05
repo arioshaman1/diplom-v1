@@ -1,12 +1,12 @@
-package com.start.getemployed.service;
+package com.start.getemployed.auth.service;
 
-import com.start.getemployed.dto.UserDto;
+import com.start.getemployed.auth.dto.UserDto;
 import com.start.getemployed.entity.Role;
 import com.start.getemployed.entity.User;
 import com.start.getemployed.exception.ResourceAlreadyExistsException;
 import com.start.getemployed.exception.ResourceNotFoundException;
-import com.start.getemployed.repository.RoleRepository;
-import com.start.getemployed.repository.UserRepository;
+import com.start.getemployed.auth.repository.RoleRepository;
+import com.start.getemployed.auth.repository.UserRepository;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;

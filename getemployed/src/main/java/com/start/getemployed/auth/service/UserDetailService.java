@@ -1,7 +1,7 @@
-package com.start.getemployed.service;
+package com.start.getemployed.auth.service;
 
 import com.start.getemployed.entity.Role;
-import com.start.getemployed.repository.UserRepository;
+import com.start.getemployed.auth.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

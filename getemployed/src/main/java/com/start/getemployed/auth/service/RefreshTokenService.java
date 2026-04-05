@@ -1,11 +1,14 @@
-package com.start.getemployed.service;
+package com.start.getemployed.auth.service;
 
 import com.start.getemployed.entity.RefreshToken;
 import com.start.getemployed.entity.Role;
 import com.start.getemployed.entity.User;
-import com.start.getemployed.repository.RefreshTokenRepository;
-import com.start.getemployed.repository.UserRepository;
+import com.start.getemployed.auth.repository.RefreshTokenRepository;
+import com.start.getemployed.auth.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.stereotype.Service;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -14,8 +17,6 @@ import java.time.Instant;
 import java.util.HexFormat;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.stereotype.Service;
 
 @Service
 public class RefreshTokenService {

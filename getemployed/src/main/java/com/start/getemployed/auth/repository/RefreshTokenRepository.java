@@ -1,4 +1,4 @@
-package com.start.getemployed.repository;
+package com.start.getemployed.auth.repository;
 
 import com.start.getemployed.entity.RefreshToken;
 import java.util.Optional;

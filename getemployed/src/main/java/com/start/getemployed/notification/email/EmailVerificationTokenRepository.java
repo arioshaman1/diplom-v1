@@ -1,4 +1,4 @@
-package com.start.getemployed.repository;
+package com.start.getemployed.notification.email;
 
 import com.start.getemployed.entity.EmailVerificationToken;
 import java.util.Optional;
