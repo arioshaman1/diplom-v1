@@ -161,6 +161,16 @@ databaseChangeLog:
             referencedTableName: users
             referencedColumnNames: id
             constraintName: fk_evt_user
+  - changeSet:
+      id: 007-add-revoked-at-to-email-verification-tokens
+      author: diploma
+      changes:
+        - addColumn:
+            tableName: email_verification_tokens
+            columns:
+              - column:
+                  name: revoked_at
+                  type: TIMESTAMP
 
   - changeSet:
       id: 008-create-refresh-tokens

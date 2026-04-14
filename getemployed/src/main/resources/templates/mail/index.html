@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetEmployed API Test Page</title>
+    <style>
+        :root {
+            --bg: #f3f6fb;
+            --card: #ffffff;
+            --text: #14213d;
+            --muted: #5c677d;
+            --accent: #0f766e;
+            --accent-dark: #115e59;
+            --border: #d9e2ec;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 100%);
+            color: var(--text);
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+        }
+
+        .lead {
+            margin: 0 0 24px;
+            color: var(--muted);
+        }
+
+        .token-box {
+            margin-bottom: 24px;
+            padding: 16px;
+            border-radius: 12px;
+            background: #e0f2fe;
+            border: 1px solid #bae6fd;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .card h2 {
+            margin: 0 0 14px;
+            font-size: 18px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 6px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        button {
+            margin-top: 14px;
+            width: 100%;
+            border: 0;
+            border-radius: 10px;
+            padding: 11px 14px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--accent-dark);
+        }
+
+        pre {
+            margin: 14px 0 0;
+            padding: 12px;
+            min-height: 88px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            border-radius: 10px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <h1>GetEmployed API Test Page</h1>
+    <p class="lead">Страница для ручной проверки auth, users и email verification flow.</p>
+
+    <div class="token-box">
+        <strong>Access token:</strong>
+        <div id="accessTokenBox">Токен пока не получен</div>
+    </div>
+
+    <div class="grid">
+        <section class="card">
+            <h2>Login</h2>
+            <label for="loginUsername">Email</label>
+            <input id="loginUsername" type="email" placeholder="user@example.com">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" placeholder="password">
+            <button type="button" onclick="login()">Login</button>
+            <pre id="loginResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Register</h2>
+            <label for="registerName">Name</label>
+            <input id="registerName" type="text" placeholder="Andrej">
+            <label for="registerEmail">Email</label>
+            <input id="registerEmail" type="email" placeholder="user@example.com">
+            <label for="registerPassword">Password</label>
+            <input id="registerPassword" type="password" placeholder="password">
+            <button type="button" onclick="registerUser()">Register</button>
+            <pre id="registerResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Refresh Token</h2>
+            <button type="button" onclick="refreshToken()">Refresh</button>
+            <pre id="refreshResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Logout</h2>
+            <button type="button" onclick="logout()">Logout</button>
+            <pre id="logoutResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Send Email</h2>
+            <label for="sendEmailTo">Recipient</label>
+            <input id="sendEmailTo" type="email" placeholder="user@example.com">
+            <button type="button" onclick="sendEmail()">Send</button>
+            <pre id="sendEmailResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Verify Email</h2>
+            <label for="verifyToken">Token</label>
+            <input id="verifyToken" type="text" placeholder="verification token">
+            <button type="button" onclick="verifyEmail()">Verify</button>
+            <pre id="verifyResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Create User</h2>
+            <label for="createUserName">Name</label>
+            <input id="createUserName" type="text" placeholder="New user">
+            <label for="createUserEmail">Email</label>
+            <input id="createUserEmail" type="email" placeholder="new@example.com">
+            <label for="createUserPassword">Password</label>
+            <input id="createUserPassword" type="password" placeholder="password">
+            <button type="button" onclick="createUser()">Create</button>
+            <pre id="createUserResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Get User By ID</h2>
+            <label for="getUserId">User ID</label>
+            <input id="getUserId" type="number" placeholder="1">
+            <button type="button" onclick="getUserById()">Get</button>
+            <pre id="getUserResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Get User By Email</h2>
+            <label for="getUserEmailValue">Email</label>
+            <input id="getUserEmailValue" type="email" placeholder="user@example.com">
+            <button type="button" onclick="getUserByEmail()">Get</button>
+            <pre id="getUserByEmailResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Delete User</h2>
+            <label for="deleteUserId">User ID</label>
+            <input id="deleteUserId" type="number" placeholder="1">
+            <button type="button" onclick="deleteUser()">Delete</button>
+            <pre id="deleteUserResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Add Role</h2>
+            <label for="addRoleUserId">User ID</label>
+            <input id="addRoleUserId" type="number" placeholder="1">
+            <label for="addRoleName">Role</label>
+            <input id="addRoleName" type="text" placeholder="ROLE_ADMIN">
+            <button type="button" onclick="addRole()">Add</button>
+            <pre id="addRoleResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Remove Role</h2>
+            <label for="removeRoleUserId">User ID</label>
+            <input id="removeRoleUserId" type="number" placeholder="1">
+            <label for="removeRoleName">Role</label>
+            <input id="removeRoleName" type="text" placeholder="ROLE_ADMIN">
+            <button type="button" onclick="removeRole()">Remove</button>
+            <pre id="removeRoleResult"></pre>
+        </section>
+
+        <section class="card">
+            <h2>Health Check</h2>
+            <button type="button" onclick="healthCheck()">Check</button>
+            <pre id="healthResult"></pre>
+        </section>
+    </div>
+</div>
+
+<script>
+    let accessToken = null;
+
+    function setAccessToken(token) {
+        accessToken = token;
+        document.getElementById("accessTokenBox").textContent =
+            token || "Токен пока не получен";
+    }
+
+    function authHeaders() {
+        const headers = {
+            "Content-Type": "application/json"
+        };
+        if (accessToken) {
+            headers["Authorization"] = "Bearer " + accessToken;
+        }
+        return headers;
+    }
+
+    async function handleResponse(response) {
+        const text = await response.text();
+        try {
+            return {
+                ok: response.ok,
+                status: response.status,
+                body: JSON.parse(text)
+            };
+        } catch (e) {
+            return {
+                ok: response.ok,
+                status: response.status,
+                body: text
+            };
+        }
+    }
+
+    function printResult(elementId, data) {
+        document.getElementById(elementId).textContent =
+            typeof data === "string" ? data : JSON.stringify(data, null, 2);
+    }
+
+    async function login() {
+        const email = document.getElementById("loginUsername").value;
+        const password = document.getElementById("loginPassword").value;
+
+        const response = await fetch("/api/v1/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({ email, password })
+        });
+
+        const result = await handleResponse(response);
+
+        if (result.ok && result.body.token) {
+            setAccessToken(result.body.token);
+        } else {
+            setAccessToken(null);
+        }
+
+        printResult("loginResult", result);
+    }
+
+    async function registerUser() {
+        const name = document.getElementById("registerName").value;
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+
+        const response = await fetch("/api/v1/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name, email, password })
+        });
+
+        const result = await handleResponse(response);
+        printResult("registerResult", result);
+    }
+
+    async function refreshToken() {
+        const response = await fetch("/api/v1/auth/refresh", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        const result = await handleResponse(response);
+
+        if (result.ok && result.body.token) {
+            setAccessToken(result.body.token);
+        }
+
+        printResult("refreshResult", result);
+    }
+
+    async function logout() {
+        const response = await fetch("/api/v1/auth/logout", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        const result = await handleResponse(response);
+
+        setAccessToken(null);
+        printResult("logoutResult", result);
+    }
+
+    async function sendEmail() {
+        const email = document.getElementById("sendEmailTo").value;
+
+        const response = await fetch("/api/v1/auth/send-email?to=" + encodeURIComponent(email), {
+            method: "POST"
+        });
+
+        const result = await handleResponse(response);
+        printResult("sendEmailResult", result);
+    }
+
+    async function verifyEmail() {
+        const token = document.getElementById("verifyToken").value;
+
+        const response = await fetch("/api/v1/auth/verify?token=" + encodeURIComponent(token), {
+            method: "POST"
+        });
+
+        const result = await handleResponse(response);
+        printResult("verifyResult", result);
+    }
+
+    async function createUser() {
+        const name = document.getElementById("createUserName").value;
+        const email = document.getElementById("createUserEmail").value;
+        const password = document.getElementById("createUserPassword").value;
+
+        const response = await fetch("/api/v1/users", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ name, email, password })
+        });
+
+        const result = await handleResponse(response);
+        printResult("createUserResult", result);
+    }
+
+    async function getUserById() {
+        const id = document.getElementById("getUserId").value;
+
+        const response = await fetch("/api/v1/users/" + id, {
+            method: "GET",
+            headers: authHeaders()
+        });
+
+        const result = await handleResponse(response);
+        printResult("getUserResult", result);
+    }
+
+    async function getUserByEmail() {
+        const email = document.getElementById("getUserEmailValue").value;
+
+        const response = await fetch("/api/v1/users/email/" + encodeURIComponent(email), {
+            method: "GET",
+            headers: authHeaders()
+        });
+
+        const result = await handleResponse(response);
+        printResult("getUserByEmailResult", result);
+    }
+
+    async function deleteUser() {
+        const id = document.getElementById("deleteUserId").value;
+
+        const response = await fetch("/api/v1/users/" + id, {
+            method: "DELETE",
+            headers: authHeaders()
+        });
+
+        const result = await handleResponse(response);
+        printResult("deleteUserResult", result);
+    }
+
+    async function addRole() {
+        const userId = document.getElementById("addRoleUserId").value;
+        const roleName = document.getElementById("addRoleName").value;
+
+        const response = await fetch("/api/v1/users/" + userId + "/roles/" + encodeURIComponent(roleName), {
+            method: "POST",
+            headers: authHeaders()
+        });
+
+        const result = await handleResponse(response);
+        printResult("addRoleResult", result);
+    }
+
+    async function removeRole() {
+        const userId = document.getElementById("removeRoleUserId").value;
+        const roleName = document.getElementById("removeRoleName").value;
+
+        const response = await fetch("/api/v1/users/" + userId + "/roles/" + encodeURIComponent(roleName), {
+            method: "DELETE",
+            headers: authHeaders()
+        });
+
+        const result = await handleResponse(response);
+        printResult("removeRoleResult", result);
+    }
+
+    async function healthCheck() {
+        const response = await fetch("/api/v1/users/health");
+        const result = await handleResponse(response);
+        printResult("healthResult", result);
+    }
+</script>
+</body>
+</html>

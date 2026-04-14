@@ -14,6 +14,7 @@ spring:
 app:
   frontend:
     verify-url-pattern: http://localhost:3000/verify?token=%s
+    home-page : http://localhost:3000
   security:
     email-token-pepper: test-pepper
     email-token-ttl-minutes: 30

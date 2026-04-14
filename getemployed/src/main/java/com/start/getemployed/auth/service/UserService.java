@@ -80,6 +80,11 @@ public class UserService {
     return mapToResponse(updatedUser);
   }
 
+  @Transactional(readOnly = true)
+  public User findByEmailOrNull(String email) {
+    return userRepository.findByEmail(email.toLowerCase().trim()).orElse(null);
+  }
+
   @Transactional
   public void deleteUser(Long id) {
     if (!userRepository.existsById(id)) {
@@ -143,8 +148,16 @@ public class UserService {
   public User registerDisabled(String email, String password, String name) {
     String normalized = email.toLowerCase().trim();
 
-    if (userRepository.existsByEmail(normalized)) {
-      throw new IllegalArgumentException("Email already in use");
+    User existing = userRepository.findByEmail(normalized).orElse(null);
+    if (existing != null) {
+      if (existing.isEnabled()) {
+        throw new IllegalArgumentException("email already in use");
+      }
+
+      existing.setPasswordHash(passwordEncoder.encode(password));
+      existing.setName(name);
+
+      return userRepository.save(existing);
     }
 
     User u = new User();
@@ -159,8 +172,7 @@ public class UserService {
             .orElseThrow(() -> new ResourceNotFoundException("Роль USER не найдена"));
     u.addRole(userRole);
 
-    User savedUser = userRepository.save(u);
-    return userRepository.save(savedUser);
+    return userRepository.save(u);
   }
 
   @Transactional

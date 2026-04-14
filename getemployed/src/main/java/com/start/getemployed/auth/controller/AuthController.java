@@ -6,17 +6,17 @@ import com.start.getemployed.auth.jwt.TokenService;
 import com.start.getemployed.auth.service.RefreshTokenService;
 import com.start.getemployed.entity.User;
 import com.start.getemployed.notification.service.EmailSenderService;
-import com.start.getemployed.notification.service.EmailVerificationService;
+import com.start.getemployed.auth.service.EmailVerificationService;
 import com.start.getemployed.auth.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
-import java.time.ZonedDateTime;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -61,7 +61,7 @@ public class AuthController {
       @RequestBody LoginRequest req, HttpServletRequest httpReq, HttpServletResponse httpResp) {
     Authentication auth =
         authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(req.username(), req.password()));
+            new UsernamePasswordAuthenticationToken(req.email(), req.password()));
     String accessToken = tokenService.generateToken(auth);
     String refreshToken = refreshTokenService.issue(auth.getName());
 
@@ -98,32 +98,11 @@ public class AuthController {
     return Map.of("token", newAccess);
   }
 
-  @PostMapping("/send-email")
-  public String send(@RequestParam String to) {
-    emailSenderService.sendHtml(
-        to,
-        "GetEmployed — завершите регистрацию ✅",
-        "mail/verify",
-        Map.of(
-            "subject", "GetEmployed — тестовое письмо ✅",
-            "appName", "GetEmployed",
-            "name", "User",
-            "sentAt", ZonedDateTime.now().toString(),
-            "env", "local",
-            "actionUrl", "http://localhost:8080"));
-    return "sent";
-  }
-
-  @PostMapping("/verify")
-  public ResponseEntity<Void> verify(@RequestParam("token") String token) {
-    emailVerificationService.verify(token);
-    return ResponseEntity.ok().build();
-  }
 
   @PostMapping("/logout")
   public Map<String, String> logout(HttpServletRequest httpReq, HttpServletResponse httpResp) {
     String refresh = readCookie(httpReq, REFRESH_COOKIE);
-    if (refresh == null || refresh.isBlank()) {
+    if (refresh != null && !refresh.isBlank()) {
       refreshTokenService.revoke(refresh);
     }
     clearRefreshCookie(httpResp);
@@ -158,4 +137,5 @@ public class AuthController {
     cookie.setMaxAge(0);
     resp.addCookie(cookie);
   }
+
 }
