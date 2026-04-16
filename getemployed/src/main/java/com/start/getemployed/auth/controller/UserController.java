@@ -1,7 +1,7 @@
 package com.start.getemployed.auth.controller;
 
 import com.start.getemployed.auth.dto.UserDto;
-import com.start.getemployed.auth.service.UserService;
+import com.start.getemployed.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Пользователи", description = "API для управления пользователями")
 public class UserController {
 
-  private final UserService userService;
+  private final AuthService authService;
 
   @PostMapping
   @Operation(
@@ -24,21 +24,21 @@ public class UserController {
       description = "Регистрация нового пользователя в системе")
   public ResponseEntity<UserDto.Response> createUser(
       @Valid @RequestBody UserDto.CreateRequest request) {
-    UserDto.Response response = userService.createUser(request);
+    UserDto.Response response = authService.createUser(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @GetMapping("/{id}")
   @Operation(summary = "Получить пользователя по ID")
   public ResponseEntity<UserDto.Response> getUserById(@PathVariable Long id) {
-    UserDto.Response response = userService.getUserById(id);
+    UserDto.Response response = authService.getUserById(id);
     return ResponseEntity.ok(response);
   }
 
   @GetMapping("/email/{email}")
   @Operation(summary = "Получить пользователя по email")
   public ResponseEntity<UserDto.Response> getUserByEmail(@PathVariable String email) {
-    UserDto.Response response = userService.getUserByEmail(email);
+    UserDto.Response response = authService.getUserByEmail(email);
     return ResponseEntity.ok(response);
   }
 
@@ -46,14 +46,14 @@ public class UserController {
   @Operation(summary = "Обновить данные пользователя")
   public ResponseEntity<UserDto.Response> updateUser(
       @PathVariable Long id, @Valid @RequestBody UserDto.UpdateRequest request) {
-    UserDto.Response response = userService.updateUser(id, request);
+    UserDto.Response response = authService.updateUser(id, request);
     return ResponseEntity.ok(response);
   }
 
   @DeleteMapping("/{id}")
   @Operation(summary = "Удалить пользователя")
   public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-    userService.deleteUser(id);
+    authService.deleteUser(id);
     return ResponseEntity.noContent().build();
   }
 
@@ -61,7 +61,7 @@ public class UserController {
   @Operation(summary = "Добавить роль пользователю")
   public ResponseEntity<UserDto.Response> addRoleToUser(
       @PathVariable Long userId, @PathVariable String roleName) {
-    UserDto.Response response = userService.addRoleToUser(userId, roleName);
+    UserDto.Response response = authService.addRoleToUser(userId, roleName);
     return ResponseEntity.ok(response);
   }
 
@@ -69,7 +69,7 @@ public class UserController {
   @Operation(summary = "Удалить роль у пользователя")
   public ResponseEntity<UserDto.Response> removeRoleFromUser(
       @PathVariable Long userId, @PathVariable String roleName) {
-    UserDto.Response response = userService.removeRoleFromUser(userId, roleName);
+    UserDto.Response response = authService.removeRoleFromUser(userId, roleName);
     return ResponseEntity.ok(response);
   }
 

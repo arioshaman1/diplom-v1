@@ -1,6 +1,9 @@
 package com.start.getemployed.auth.service;
 
+import com.start.getemployed.AuthResult;
+import com.start.getemployed.auth.dto.AuthDto;
 import com.start.getemployed.auth.dto.UserDto;
+import com.start.getemployed.auth.jwt.TokenService;
 import com.start.getemployed.entity.Role;
 import com.start.getemployed.entity.User;
 import com.start.getemployed.exception.ResourceAlreadyExistsException;
@@ -10,17 +13,23 @@ import com.start.getemployed.auth.repository.UserRepository;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class AuthService {
 
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
+  private final AuthenticationManager authenticationManager;
+  private final RefreshTokenService refreshTokenService;
+  private final TokenService tokenService;
 
   @Transactional
   public UserDto.Response createUser(UserDto.CreateRequest request) {
@@ -188,5 +197,16 @@ public class UserService {
       user.setEnabled(true);
       userRepository.save(user);
     }
+  }
+
+  @Transactional
+  public AuthResult login (AuthDto.LoginRequest req) {
+    Authentication auth = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
+    );
+    String accessToken = tokenService.generateToken(auth);
+    String refreshToken = refreshTokenService.issue(auth.getName());
+
+    return new AuthResult(accessToken, refreshToken);
   }
 }

@@ -1,7 +1,7 @@
 package com.start.getemployed.auth.controller;
 
 import com.start.getemployed.auth.service.EmailVerificationService;
-import com.start.getemployed.auth.service.UserService;
+import com.start.getemployed.auth.service.AuthService;
 import com.start.getemployed.entity.User;
 import com.start.getemployed.notification.service.EmailSenderService;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,16 +19,16 @@ import java.util.Map;
 public class VerificationController {
     private final EmailSenderService emailSenderService;
     private final EmailVerificationService emailVerificationService;
-    private final UserService userService;
+    private final AuthService authService;
 
     public VerificationController(
             EmailVerificationService emailVerificationService,
             EmailSenderService emailSenderService,
-            UserService userService
+            AuthService authService
     ){
         this.emailVerificationService = emailVerificationService;
         this.emailSenderService = emailSenderService;
-        this.userService = userService;
+        this.authService = authService;
     }
 
     @Value("${app.frontend.home-page-url}")
@@ -54,7 +54,7 @@ public class VerificationController {
 
     @PostMapping("/resend-verification")
     public Map<String, String> resendEmailVerification(@RequestParam String email) {
-        User user = userService.findByEmailOrNull(email);
+        User user = authService.findByEmailOrNull(email);
 
         if (user != null && !user.isEnabled()) {
             emailVerificationService.resendVerification(user);

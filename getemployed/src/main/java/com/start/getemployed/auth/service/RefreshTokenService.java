@@ -100,15 +100,20 @@ public class RefreshTokenService {
   @Transactional
   public void revoke(String rawRefreshToken) {
     String hash = sha256Hex(rawRefreshToken);
-    refreshRepo
-        .findByTokenHash(hash)
-        .ifPresent(
-            rt -> {
-              if (rt.getRevokedAt() == null) {
-                rt.setRevokedAt(Instant.now());
-                refreshRepo.save(rt);
-              }
-            });
+
+    System.out.println("REVOKE HASH = " + hash);
+
+    refreshRepo.findByTokenHash(hash)
+            .ifPresentOrElse(
+                    rt -> {
+                      System.out.println("TOKEN FOUND");
+                      if (rt.getRevokedAt() == null) {
+                        rt.setRevokedAt(Instant.now());
+                        refreshRepo.save(rt);
+                      }
+                    },
+                    () -> System.out.println("TOKEN NOT FOUND")
+            );
   }
 
   private String generateRawToken() {

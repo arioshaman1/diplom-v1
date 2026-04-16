@@ -30,6 +30,7 @@ public class SecurityConfig {
                 authz
                     .requestMatchers(
                         "/",
+                        "/api/v1/verification/verify",
                         "/index.html",
                         "/login.html",
                         "/register.html",
