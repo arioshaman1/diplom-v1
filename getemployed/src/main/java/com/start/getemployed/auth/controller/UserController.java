@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1/")
 @RequiredArgsConstructor
 @Tag(name = "Пользователи", description = "API для управления пользователями")
 public class UserController {
@@ -28,12 +28,12 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
-  @GetMapping("/{id}")
-  @Operation(summary = "Получить пользователя по ID")
-  public ResponseEntity<UserDto.Response> getUserById(@PathVariable Long id) {
-    UserDto.Response response = authService.getUserById(id);
-    return ResponseEntity.ok(response);
-  }
+//  @GetMapping("/{id}")
+//  @Operation(summary = "Получить пользователя по ID")
+//  public ResponseEntity<UserDto.Response> getUserById(@PathVariable Long id) {
+//    UserDto.Response response = authService.getUserById(id);
+//    return ResponseEntity.ok(response);
+//  }
 
   @GetMapping("/email/{email}")
   @Operation(summary = "Получить пользователя по email")

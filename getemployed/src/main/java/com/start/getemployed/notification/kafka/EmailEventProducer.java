@@ -10,28 +10,28 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EmailEventProducer {
-  private final KafkaTemplate<String, SendVerifyEmailEvent> kafkaTemplate;
 
-  @Value("${app.kafka.topics.email-event:email-event}")
-  private String topic;
+    private final KafkaTemplate<String, EventEnvelope<?>> kafkaTemplate;
 
-  public void sendVerifyEmail(SendVerifyEmailEvent event) {
-    Logger log = LoggerFactory.getLogger(EmailEventProducer.class);
-    log.info("Sending email event to topic {}", topic);
-    kafkaTemplate
-        .send(topic, event.email(), event)
-        .whenComplete(
-            (res, ex) -> {
-              if (ex != null) {
-                log.error("Kafka send FAILED", ex);
-              } else {
-                var m = res.getRecordMetadata();
-                log.info(
-                    "Kafka send OK topic={} partition={} offset={}",
-                    m.topic(),
-                    m.partition(),
-                    m.offset());
-              }
-            });
-  }
+    @Value("${app.kafka.topics.email-event}")
+    private String emailTopic;
+
+    @Value("${app.kafka.topics.password-reset-event}")
+    private String passwordResetTopic;
+
+    public void sendVerifyEmail(SendVerifyEmailEvent event) {
+
+        EventEnvelope<SendVerifyEmailEvent> envelope =
+                new EventEnvelope<>(EventType.SEND_VERIFY_EMAIL.name(), event);
+
+        kafkaTemplate.send(emailTopic, event.email(), envelope);
+    }
+
+    public void sendPasswordResetEmail(PasswordResetEmailEvent event) {
+
+        EventEnvelope<PasswordResetEmailEvent> envelope =
+                new EventEnvelope<>(EventType.PASSWORD_RESET_EMAIL.name(), event);
+
+        kafkaTemplate.send(passwordResetTopic, event.email(), envelope);
+    }
 }

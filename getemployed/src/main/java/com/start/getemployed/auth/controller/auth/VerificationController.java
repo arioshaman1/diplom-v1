@@ -1,21 +1,17 @@
-package com.start.getemployed.auth.controller;
+package com.start.getemployed.auth.controller.auth;
 
 import com.start.getemployed.auth.service.EmailVerificationService;
 import com.start.getemployed.auth.service.AuthService;
 import com.start.getemployed.entity.User;
 import com.start.getemployed.notification.service.EmailSenderService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
-import java.time.ZonedDateTime;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/verification")
+@RequestMapping("/api/v1/")
 public class VerificationController {
     private final EmailSenderService emailSenderService;
     private final EmailVerificationService emailVerificationService;
@@ -35,22 +31,6 @@ public class VerificationController {
     private String homePageUrl;
     @Value("${app.frontend.verify-failed-url}")
     private String verifyFailedUrl;
-
-    @PostMapping("/send-email")
-    public String send(@RequestParam String to) {
-        emailSenderService.sendHtml(
-                to,
-                "GetEmployed — завершите регистрацию ✅",
-                "mail/verify",
-                Map.of(
-                        "subject", "GetEmployed — тестовое письмо ✅",
-                        "appName", "GetEmployed",
-                        "name", "User",
-                        "sentAt", ZonedDateTime.now().toString(),
-                        "env", "local",
-                        "actionUrl", "http://localhost:8080"));
-        return "sent";
-    }
 
     @PostMapping("/resend-verification")
     public Map<String, String> resendEmailVerification(@RequestParam String email) {

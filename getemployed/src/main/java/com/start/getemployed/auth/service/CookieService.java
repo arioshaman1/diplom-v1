@@ -17,7 +17,7 @@ public class CookieService {
 
     private static final boolean COOKIE_SECURE = false;
     private static final String REFRESH_COOKIE = "refresh_token";
-    private static final String REFRESH_COOKIE_PATH = "/api/v1/auth";
+    private static final String REFRESH_COOKIE_PATH = "/api/v1";
     private static final Duration REFRESH_TTL = Duration.ofDays(30);
 
     public void setRefreshCookie(HttpServletResponse resp, String refreshToken) {
@@ -35,7 +35,7 @@ public class CookieService {
 
     public String readRefreshCookie(HttpServletRequest req) {
         Cookie[] cookies = req.getCookies();
-        if (cookies != null) return null;
+        if (cookies == null) return null;
 
         for (Cookie c : cookies) {
             if (REFRESH_COOKIE.equals(c.getName())) {

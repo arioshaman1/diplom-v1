@@ -19,7 +19,7 @@ public class VerificationTokenGen {
   public String newRawToken() {
     byte[] b = new byte[32];
     secureRandom.nextBytes(b);
-    return Base64.getEncoder().encodeToString(b);
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(b);
   }
 
   public String hash(String rawToken) {

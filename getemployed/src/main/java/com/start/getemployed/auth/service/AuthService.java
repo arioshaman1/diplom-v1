@@ -70,6 +70,12 @@ public class AuthService {
     return mapToResponse(user);
   }
 
+  @Transactional(readOnly = true)
+  public User findByEmail(String email) {
+    return userRepository.findByEmail(email.toLowerCase().trim())
+            .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
+  }
+
   @Transactional
   public UserDto.Response updateUser(Long id, UserDto.UpdateRequest request) {
     User user =

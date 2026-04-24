@@ -1,24 +1,22 @@
-package com.start.getemployed.auth.controller;
+package com.start.getemployed.auth.controller.auth;
 
 import com.start.getemployed.AuthResult;
-import com.start.getemployed.auth.LoginRequest;
+import com.start.getemployed.auth.ApiResponse;
 import com.start.getemployed.auth.dto.AuthDto;
 import com.start.getemployed.auth.dto.UserDto;
 import com.start.getemployed.auth.jwt.TokenService;
-import com.start.getemployed.auth.service.CookieService;
-import com.start.getemployed.auth.service.RefreshTokenService;
+import com.start.getemployed.auth.service.*;
+import com.start.getemployed.entity.Role;
 import com.start.getemployed.entity.User;
 import com.start.getemployed.notification.service.EmailSenderService;
-import com.start.getemployed.auth.service.EmailVerificationService;
-import com.start.getemployed.auth.service.AuthService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.util.Map;
+import com.start.getemployed.auth.dto.UserDto;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,6 +34,7 @@ public class AuthController {
   private final AuthService authService;
   private final EmailVerificationService emailVerificationService;
   private final CookieService cookieService;
+  private final RateLimitService rateLimitService;
 
   public AuthController(
           AuthenticationManager authenticationManager,
@@ -45,7 +44,8 @@ public class AuthController {
           HttpServletResponse httpServletResponse,
           AuthService authService,
           EmailVerificationService emailVerificationService,
-          CookieService cookieService) {
+          CookieService cookieService,
+          RateLimitService rateLimitService) {
     this.authenticationManager = authenticationManager;
     this.tokenService = tokenService;
     this.refreshTokenService = refreshTokenService;
@@ -54,54 +54,69 @@ public class AuthController {
     this.emailVerificationService = emailVerificationService;
     this.emailSenderService = emailSenderService;
     this.cookieService = cookieService;
+    this.rateLimitService = rateLimitService;
   }
 
   @PostMapping("/login")
-  public AuthDto.LoginResponse login(@RequestBody AuthDto.LoginRequest req, HttpServletResponse resp) {
-
+  public ApiResponse<AuthDto.LoginResponse> login(@RequestBody AuthDto.LoginRequest req, HttpServletResponse resp
+  ) {
     AuthResult result = authService.login(req);
     cookieService.setRefreshCookie(resp, result.refreshToken());
 
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    User user = authService.findByEmail(req.getEmail());
 
-    Set<String> roles = auth.getAuthorities()
-            .stream()
-            .map(a -> a.getAuthority())
-            .collect(Collectors.toSet());
-
-    return new AuthDto.LoginResponse(
-            result.accessToken(),
-            auth.getName(), ////email изза auth context holder
-            auth.getName(),
-            roles
+    AuthDto.UserDto userDto = new AuthDto.UserDto(
+            user.getId().toString(),
+            user.getEmail(),
+            user.getName()
     );
+    AuthDto.LoginResponse response = new AuthDto.LoginResponse(
+            result.accessToken(),
+            userDto
+
+    );
+
+    return new ApiResponse<>(response);
 
   }
 
   @PostMapping("/register")
   public Map<String, String> register(@RequestBody UserDto.CreateRequest req) {
+    rateLimitService.check("register:" + req.getEmail());
     User user = authService.registerDisabled(req.getEmail(), req.getPassword(), req.getName());
     emailVerificationService.issueAndPublish(user);
     return Map.of("status", "verification_sent");
   }
 
   @PostMapping("/refresh")
-  public Map<String, String> refresh(HttpServletRequest req, HttpServletResponse resp) {
+  public ApiResponse<AuthDto.RefreshResponse> refresh(
+          HttpServletRequest req,
+          HttpServletResponse resp
+  ) {
     String oldRefresh = cookieService.readRefreshCookie(req);
 
     if (oldRefresh == null || oldRefresh.isBlank()) {
-      throw new RuntimeException("No refresh token cookie found");
+      throw new RuntimeException("No refresh token found");
     }
+
     var rr = refreshTokenService.rotate(oldRefresh);
-    String newAccess = tokenService.generateTokenFromSubjectAndRoles(rr.subject(), rr.roles());
+
+    String newAccess = tokenService.generateTokenFromSubjectAndRoles(
+            rr.subject(),
+            rr.roles()
+    );
 
     cookieService.setRefreshCookie(resp, rr.newRefreshToken());
-    return Map.of("token", newAccess);
+
+    AuthDto.RefreshResponse response = new AuthDto.RefreshResponse(newAccess);
+
+    return new ApiResponse<>(response);
   }
 
 
   @PostMapping("/logout")
-  public Map<String, String> logout(HttpServletRequest req, HttpServletResponse resp) {
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void logout(HttpServletRequest req, HttpServletResponse resp) {
     String refresh = cookieService.readRefreshCookie(req);
 
     if (refresh != null && !refresh.isBlank()) {
@@ -109,7 +124,6 @@ public class AuthController {
     }
 
     cookieService.clearRefreshCookie(resp);
-    return Map.of("status", "ok");
 
 
   }

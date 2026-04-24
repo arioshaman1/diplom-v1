@@ -30,6 +30,10 @@ public class SecurityConfig {
                 authz
                     .requestMatchers(
                         "/",
+                        "/api/v1/auth/register",
+                        "/api/v1/auth/login",
+                        "api/v1/password/reset-request",
+                        "/api/v1/verify",
                         "/api/v1/verification/verify",
                         "/index.html",
                         "/login.html",
