@@ -25,12 +25,19 @@ spring:
 
 
   kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-        spring.json.use.type.headers: false
+      group-id: email-service
+      auto-offset-reset: earliest
+    topics:
+      email-event: email-event
+      password-reset-event: password-reset-event
+
+    bootstrap-servers: localhost:9094
 
 
 app:
@@ -39,6 +46,7 @@ app:
     home-page-url: http://localhost:3000/verify-success
     verify-failed-url: http://localhost:3000/verify-failed
     verify-url-pattern: http://localhost:3000/verify?token=%s
+    reset-url-pattern: http://localhost:3000/reset-password?token=%s
   security:
     email-token-pepper: ${EMAIL_TOKEN_PEPPER}
     email-token-ttl-minutes: 30

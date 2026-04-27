@@ -1,8 +1,8 @@
 package com.start.getemployed.notification.kafka;
 
+import com.start.getemployed.notification.kafka.events.PasswordResetEmailEvent;
+import com.start.getemployed.notification.kafka.events.SendVerifyEmailEvent;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -11,12 +11,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class EmailEventProducer {
 
-    private final KafkaTemplate<String, EventEnvelope<?>> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Value("${app.kafka.topics.email-event}")
+    @Value("${spring.kafka.topics.email-event}")
     private String emailTopic;
 
-    @Value("${app.kafka.topics.password-reset-event}")
+    @Value("${spring.kafka.topics.password-reset-event}")
     private String passwordResetTopic;
 
     public void sendVerifyEmail(SendVerifyEmailEvent event) {

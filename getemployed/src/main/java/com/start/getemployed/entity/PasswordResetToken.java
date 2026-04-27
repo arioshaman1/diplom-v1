@@ -27,5 +27,9 @@ public class PasswordResetToken {
     @Column(name = "used_at")
     private Instant usedAt;
 
+    public String getTokenHash() {
+        return token;
+    }
+    public void setTokenHash(String tokenHash) {}
 }
 

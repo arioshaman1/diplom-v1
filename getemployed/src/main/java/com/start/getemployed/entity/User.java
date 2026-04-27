@@ -58,4 +58,7 @@ public class User {
   public void removeRole(Role role) {
     this.roles.remove(role);
   }
+  public void setPasswordHash(String passwordHash) {
+    this.passwordHash = passwordHash;
+  }
 }

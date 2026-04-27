@@ -2,13 +2,13 @@ package com.start.getemployed.auth.service;
 
 import com.start.getemployed.entity.EmailVerificationToken;
 import com.start.getemployed.entity.User;
-import com.start.getemployed.notification.kafka.EmailEventProducer;
-import com.start.getemployed.notification.kafka.SendVerifyEmailEvent;
 import com.start.getemployed.auth.repository.EmailVerificationTokenRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
+import com.start.getemployed.notification.kafka.EmailEventProducer;
+import com.start.getemployed.notification.kafka.events.SendVerifyEmailEvent;
 import com.start.getemployed.notification.service.VerificationTokenGen;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class EmailVerificationService {
 
   private final EmailVerificationTokenRepository tokenRepo;
-  private final EmailEventProducer producer;
   private final VerificationTokenGen codec;
+  private final EmailEventProducer producer;
 
   @Value("${app.security.email-token-ttl-minutes}")
   private long ttlMinutes;
@@ -41,7 +41,7 @@ public class EmailVerificationService {
     tokenRepo.save(t);
 
     producer.sendVerifyEmail(
-        new SendVerifyEmailEvent(user.getId(), user.getEmail(), user.getName(), raw, ttlMinutes));
+        new SendVerifyEmailEvent(user.getEmail(), user.getName(), raw, ttlMinutes));
   }
 
 

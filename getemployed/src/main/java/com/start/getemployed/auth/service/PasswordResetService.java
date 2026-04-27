@@ -4,7 +4,7 @@ package com.start.getemployed.auth.service;
 import com.start.getemployed.auth.repository.PasswordResetTokenRepository;
 import com.start.getemployed.entity.PasswordResetToken;
 import com.start.getemployed.entity.User;
-import com.start.getemployed.notification.kafka.PasswordResetEmailEvent;
+import com.start.getemployed.notification.kafka.events.PasswordResetEmailEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
-
-import static org.springframework.kafka.support.KafkaHeaders.TOPIC;
 
 @Service
 @RequiredArgsConstructor
@@ -46,14 +44,16 @@ public class PasswordResetService {
     public void createAndSend(User user) {
 
         PasswordResetToken token = createToken(user.getId());
-        kafkaTemplate.send(
-                "notification.email",
-                new  PasswordResetEmailEvent(
-                        user.getEmail(),
-                        token.getToken()
 
-                )
+        PasswordResetEmailEvent event = new PasswordResetEmailEvent(
+                user.getEmail(),
+                user.getName(),
+                token.getToken(),
+                60
+
         );
+
+        kafkaTemplate.send("password-reset-event", event);
     }
 
     public void markUsed(PasswordResetToken token) {
