@@ -1,4 +1,3 @@
 package com.start.getemployed.auth.jwt;
 
-public class JwtFilter {
-}
+public class JwtFilter {}

@@ -2,9 +2,11 @@ server:
   port: 8080
 
 spring:
+  config:
+    import: optional:file:.env
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/getemployed
+    url: jdbc:postgresql://localhost:5432/getemployed
     username: getemployed
     password: ${DB_PASSWORD}
 
@@ -40,13 +42,22 @@ spring:
     bootstrap-servers: localhost:9094
 
 
+  data:
+    redis:
+      port: 6379
+
+
+
+
+
+
 app:
   frontend:
-    url: http://localhost:3000
-    home-page-url: http://localhost:3000/verify-success
-    verify-failed-url: http://localhost:3000/verify-failed
-    verify-url-pattern: http://localhost:3000/verify?token=%s
-    reset-url-pattern: http://localhost:3000/reset-password?token=%s
+    url: http://localhost:8080
+    home-page-url: http://localhost:8080/?verify=success
+    verify-failed-url: http://localhost:8080/?verify=failed
+    verify-url-pattern: http://localhost:8080/api/v1/verify?token=%s
+    reset-url-pattern: http://localhost:8080/?resetToken=%s
   security:
     email-token-pepper: ${EMAIL_TOKEN_PEPPER}
     email-token-ttl-minutes: 30
@@ -66,5 +77,4 @@ app:
 jwt:
   secret: ${JWT_SECRET}
   ttl-minutes: 60
-
 

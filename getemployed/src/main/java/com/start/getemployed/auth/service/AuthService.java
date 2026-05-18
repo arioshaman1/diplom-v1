@@ -4,12 +4,12 @@ import com.start.getemployed.AuthResult;
 import com.start.getemployed.auth.dto.AuthDto;
 import com.start.getemployed.auth.dto.UserDto;
 import com.start.getemployed.auth.jwt.TokenService;
+import com.start.getemployed.auth.repository.RoleRepository;
+import com.start.getemployed.auth.repository.UserRepository;
 import com.start.getemployed.entity.Role;
 import com.start.getemployed.entity.User;
 import com.start.getemployed.exception.ResourceAlreadyExistsException;
 import com.start.getemployed.exception.ResourceNotFoundException;
-import com.start.getemployed.auth.repository.RoleRepository;
-import com.start.getemployed.auth.repository.UserRepository;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -72,8 +72,9 @@ public class AuthService {
 
   @Transactional(readOnly = true)
   public User findByEmail(String email) {
-    return userRepository.findByEmail(email.toLowerCase().trim())
-            .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
+    return userRepository
+        .findByEmail(email.toLowerCase().trim())
+        .orElseThrow(() -> new ResourceNotFoundException("Пользователь не найден"));
   }
 
   @Transactional
@@ -206,10 +207,10 @@ public class AuthService {
   }
 
   @Transactional
-  public AuthResult login (AuthDto.LoginRequest req) {
-    Authentication auth = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
-    );
+  public AuthResult login(AuthDto.LoginRequest req) {
+    Authentication auth =
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword()));
     String accessToken = tokenService.generateToken(auth);
     String refreshToken = refreshTokenService.issue(auth.getName());
 

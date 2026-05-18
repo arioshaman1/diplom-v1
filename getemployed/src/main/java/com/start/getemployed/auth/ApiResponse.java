@@ -1,3 +1,3 @@
 package com.start.getemployed.auth;
 
-public record ApiResponse<T> (T data) { }
+public record ApiResponse<T>(T data) {}

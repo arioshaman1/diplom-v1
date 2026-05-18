@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>GetEmployed - Тестовая Панель Вакансий</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; margin: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; }
+        .form-group { display: inline-block; margin-right: 15px; margin-bottom: 10px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 180px; }
+        button { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        .grid { display: flex; gap: 20px; }
+        .col { flex: 1; }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; overflow-x: auto; max-height: 400px; font-size: 13px; }
+        .vacancy-card { border-left: 4px solid #2ecc71; padding: 10px; margin-bottom: 10px; background: #fafafa; border-radius: 0 4px 4px 0; }
+        .vacancy-title { font-weight: bold; color: #2c3e50; }
+        .skill-badge { display: inline-block; background: #e74c3c; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; margin: 2px; }
+        .cluster-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px id #eee; font-size: 14px; }
+        .cluster-count { background: #95a5a6; color: white; padding: 2px 6px; border-radius: 10px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Панель тестирования Vacancy API 🚀</h1>
+
+    <div class="section">
+        <h2>Локальные вакансии (из твоей БД)</h2>
+        <div class="form-group">
+            <label>Удаленно:</label>
+            <select id="filterRemote">
+                <option value="">Все</option>
+                <option value="true">Да</option>
+                <option value="false">Нет</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Мин. зарплата:</label>
+            <input type="number" id="filterSalaryMin" placeholder="Напр. 80000">
+        </div>
+        <div class="form-group">
+            <label>ID Региона (areaId):</label>
+            <input type="number" id="filterAreaId" value="1" placeholder="1 = Москва">
+        </div>
+        <button onclick="loadVacancies()">Показать вакансии</button>
+
+        <div class="grid" style="margin-top: 15px;">
+            <div class="col">
+                <h3>Визуальный список</h3>
+                <div id="vacanciesList">Здесь будут вакансии...</div>
+            </div>
+            <div class="col">
+                <h3>Сырой JSON ответ</h3>
+                <pre id="vacanciesRaw">{}</pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Аналитика рынка (Кластеры навыков HH)</h2>
+        <div class="form-group">
+            <label>Поисковый запрос (role):</label>
+            <input type="text" id="clusterRole" value="Java Backend Junior">
+        </div>
+        <div class="form-group">
+            <label>Регион (areaId):</label>
+            <input type="number" id="clusterAreaId" value="1">
+        </div>
+        <button style="background: #e67e22;" onclick="loadHhClusters()">Запросить кластеры навыков</button>
+
+        <div class="grid" style="margin-top: 15px;">
+            <div class="col">
+                <h3>Топ ключевых навыков от HH</h3>
+                <div id="clustersList">Здесь появятся востребованные технологии...</div>
+            </div>
+            <div class="col">
+                <h3>Сырой JSON ответ</h3>
+                <pre id="clustersRaw">{}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BASE_URL = 'http://localhost:8080/api/v1';
+
+    // Функция загрузки локальных вакансий
+    async function loadVacancies() {
+        const remote = document.getElementById('filterRemote').value;
+        const salaryMin = document.getElementById('filterSalaryMin').value;
+        const areaId = document.getElementById('filterAreaId').value;
+
+        let url = `${BASE_URL}/vacancies?page=0&size=10`;
+        if (remote) url += `&remote=${remote}`;
+        if (salaryMin) url += `&salaryMin=${salaryMin}`;
+        if (areaId) url += `&areaId=${areaId}`;
+
+        try {
+            const response = await fetch(url);
+            const json = await response.json();
+
+            // Выводим сырой JSON
+            document.getElementById('vacanciesRaw').innerText = JSON.stringify(json, null, 2);
+
+            // Рендерим красивый список
+            const listContainer = document.getElementById('vacanciesList');
+            listContainer.innerHTML = '';
+
+            // Предполагаем структуру PageEnvelope, где данные лежат в поле content или items
+            const items = json.content || json.data || [];
+            if(items.length === 0) {
+                listContainer.innerHTML = 'Вакансии не найдены. Сначала запусти импорт!';
+                return;
+            }
+
+            items.forEach(v => {
+                const gaps = v.skillGaps ? v.skillGaps.map(g => `<span class="skill-badge">${g}</span>`).join('') : '';
+                listContainer.innerHTML += `
+                    <div class="vacancy-card">
+                        <div class="vacancy-title">${v.title}</div>
+                        <div style="font-size: 13px; color: #666;">${v.employer} | ${v.area || 'Регион не указан'}</div>
+                        <div style="font-size: 13px; font-weight: bold; color: #27ae60;">ЗП от: ${v.salaryMin || 'не указана'}</div>
+                        <div style="margin-top: 5px;">${gaps}</div>
+                    </div>
+                `;
+            });
+        } catch (err) {
+            document.getElementById('vacanciesList').innerText = 'Ошибка запроса. Проверь CORS или запущен ли бэкенд.';
+            console.error(err);
+        }
+    }
+
+    // Функция загрузки кластеров навыков рынка
+    async function loadHhClusters() {
+        const role = document.getElementById('clusterRole').value;
+        const areaId = document.getElementById('clusterAreaId').value;
+
+        const url = `${BASE_URL}/recommendations/market-top-skills?role=${encodeURIComponent(role)}&areaId=${areaId}`;
+
+        try {
+            const response = await fetch(url);
+            const json = await response.json();
+
+            document.getElementById('clustersRaw').innerText = JSON.stringify(json, null, 2);
+
+            const listContainer = document.getElementById('clustersList');
+            listContainer.innerHTML = '';
+
+            const items = json.data || json;
+            if(!Array.isArray(items) || items.length === 0) {
+                listContainer.innerHTML = 'Навыки не найдены для этого запроса.';
+                return;
+            }
+
+            items.forEach(item => {
+                listContainer.innerHTML += `
+                    <div class="cluster-item">
+                        <span><strong>${item.name}</strong></span>
+                        <span class="cluster-count">Встречается в ${item.count} вак.</span>
+                    </div>
+                `;
+            });
+
+        } catch (err) {
+            document.getElementById('clustersList').innerText = 'Ошибка запроса кластеров.';
+            console.error(err);
+        }
+    }
+</script>
+</body>
+</html>

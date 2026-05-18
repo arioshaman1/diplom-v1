@@ -6,18 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
-
 public class AuthDto {
   public record UserDto(String id, String email, String name) {}
+
   public record RefreshResponse(String accessToken) {}
-
-
 
   @Data
   @NoArgsConstructor
   @AllArgsConstructor
-
   @Schema(description = "Запрос на аутентификацию")
   public static class LoginRequest {
 
@@ -29,6 +25,7 @@ public class AuthDto {
     @NotBlank(message = "Пароль обязателен")
     private String password;
   }
+
   public static class LoginResponse {
     private String accessToken;
     private UserDto user;
@@ -38,9 +35,12 @@ public class AuthDto {
       this.user = user;
     }
 
-    public String getAccessToken() { return accessToken; }
-    public UserDto getUser() { return user; }
+    public String getAccessToken() {
+      return accessToken;
+    }
+
+    public UserDto getUser() {
+      return user;
+    }
   }
-
 }
-

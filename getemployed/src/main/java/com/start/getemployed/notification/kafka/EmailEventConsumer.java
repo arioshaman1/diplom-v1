@@ -5,79 +5,73 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.start.getemployed.notification.kafka.events.PasswordResetEmailEvent;
 import com.start.getemployed.notification.kafka.events.SendVerifyEmailEvent;
 import com.start.getemployed.notification.service.EmailSenderService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Component
 @RequiredArgsConstructor
 public class EmailEventConsumer {
 
-    private final ObjectMapper objectMapper;
-    private final EmailSenderService emailSenderService;
+  private final ObjectMapper objectMapper;
+  private final EmailSenderService emailSenderService;
 
-    @Value("${app.frontend.verify-url-pattern}")
-    private String verifyUrlPattern;
+  @Value("${app.frontend.verify-url-pattern}")
+  private String verifyUrlPattern;
 
-    @Value("${app.frontend.reset-url-pattern}")
-    private String resetUrlPattern;
+  @Value("${app.frontend.reset-url-pattern}")
+  private String resetUrlPattern;
 
-    @KafkaListener(topics = {"email-event", "password-reset-event"})
-    public void consume(String message) throws Exception {
+  @KafkaListener(topics = {"email-event", "password-reset-event"})
+  public void consume(String message) throws Exception {
 
-        JavaType type = objectMapper.getTypeFactory()
-                .constructParametricType(EventEnvelope.class, Object.class);
+    JavaType type =
+        objectMapper.getTypeFactory().constructParametricType(EventEnvelope.class, Object.class);
 
-        EventEnvelope<?> envelope = objectMapper.readValue(message, type);
+    EventEnvelope<?> envelope = objectMapper.readValue(message, type);
 
-        switch (envelope.type()) {
+    switch (envelope.type()) {
+      case "SEND_VERIFY_EMAIL" -> handleVerify(envelope);
 
-            case "SEND_VERIFY_EMAIL" -> handleVerify(envelope);
+      case "PASSWORD_RESET_EMAIL" -> handleReset(envelope);
 
-            case "PASSWORD_RESET_EMAIL" -> handleReset(envelope);
-
-            default -> throw new IllegalStateException("Unknown type: " + envelope.type());
-        }
+      default -> throw new IllegalStateException("Unknown type: " + envelope.type());
     }
+  }
 
-    private void handleVerify(EventEnvelope<?> envelope) {
+  private void handleVerify(EventEnvelope<?> envelope) {
 
-        SendVerifyEmailEvent event =
-                objectMapper.convertValue(envelope.payload(), SendVerifyEmailEvent.class);
+    SendVerifyEmailEvent event =
+        objectMapper.convertValue(envelope.payload(), SendVerifyEmailEvent.class);
 
-        String link = String.format(verifyUrlPattern, event.rawToken());
+    String link = String.format(verifyUrlPattern, event.rawToken());
 
-        emailSenderService.sendHtml(
-                event.email(),
-                "Подтверждение почты",
-                "mail/verify",
-                Map.of(
-                        "name", event.name(),
-                        "actionUrl", link,
-                        "ttlMinutes", event.ttlMinutes()
-                )
-        );
-    }
+    emailSenderService.sendHtml(
+        event.email(),
+        "Подтверждение почты",
+        "mail/verify",
+        Map.of(
+            "name", event.name(),
+            "actionUrl", link,
+            "ttlMinutes", event.ttlMinutes()));
+  }
 
-    private void handleReset(EventEnvelope<?> envelope) {
+  private void handleReset(EventEnvelope<?> envelope) {
 
-        PasswordResetEmailEvent event =
-                objectMapper.convertValue(envelope.payload(), PasswordResetEmailEvent.class);
+    PasswordResetEmailEvent event =
+        objectMapper.convertValue(envelope.payload(), PasswordResetEmailEvent.class);
 
-        String link = String.format(resetUrlPattern, event.resetToken());
+    String link = String.format(resetUrlPattern, event.resetToken());
 
-        emailSenderService.sendHtml(
-                event.email(),
-                "Сброс пароля",
-                "mail/password-reset",
-                Map.of(
-                        "name", event.name(),
-                        "actionUrl", link,
-                        "ttlMinutes", event.ttlMinutes()
-                )
-        );
-    }
+    emailSenderService.sendHtml(
+        event.email(),
+        "Сброс пароля",
+        "mail/password-reset",
+        Map.of(
+            "name", event.name(),
+            "actionUrl", link,
+            "ttlMinutes", event.ttlMinutes()));
+  }
 }

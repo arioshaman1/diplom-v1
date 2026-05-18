@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/001-init-auth.yaml
+  - include:
+      file: db/changelog/002-trajectory-api.yaml

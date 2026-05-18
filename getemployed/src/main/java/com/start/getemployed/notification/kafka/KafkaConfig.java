@@ -7,8 +7,8 @@ import org.springframework.kafka.core.ProducerFactory;
 
 @Configuration
 public class KafkaConfig {
-    @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> pf) {
-        return new KafkaTemplate<>(pf);
-    }
+  @Bean
+  public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> pf) {
+    return new KafkaTemplate<>(pf);
+  }
 }
