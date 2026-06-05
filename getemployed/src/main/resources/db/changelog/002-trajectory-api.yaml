@@ -1,0 +1,224 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-add-user-skills-unique
+      author: diploma
+      changes:
+        - addUniqueConstraint:
+            tableName: user_skills
+            columnNames: user_id, skill_id
+            constraintName: uq_user_skills_user_skill
+
+  - changeSet:
+      id: 014-create-vacancies
+      author: diploma
+      changes:
+        - createTable:
+            tableName: vacancies
+            columns:
+              - column: { name: id, type: BIGSERIAL, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: hh_id, type: VARCHAR(20), constraints: { nullable: false, unique: true } }
+              - column: { name: title, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: employer, type: VARCHAR(255) }
+              - column: { name: description, type: TEXT }
+              - column: { name: requirements, type: TEXT }
+              - column: { name: area, type: VARCHAR(100) }
+              - column: { name: area_id, type: INT }
+              - column: { name: salary_min, type: INT }
+              - column: { name: salary_max, type: INT }
+              - column: { name: currency, type: VARCHAR(10) }
+              - column: { name: remote, type: BOOLEAN, defaultValueBoolean: false }
+              - column: { name: experience, type: VARCHAR(50) }
+              - column: { name: url, type: VARCHAR(500) }
+              - column: { name: fetched_at, type: TIMESTAMP, defaultValueComputed: now(), constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, defaultValueComputed: now(), constraints: { nullable: false } }
+        - createIndex:
+            tableName: vacancies
+            indexName: idx_vacancies_fetched
+            columns:
+              - column: { name: fetched_at }
+
+  - changeSet:
+      id: 015-create-vacancy-skills
+      author: diploma
+      changes:
+        - createTable:
+            tableName: vacancy_skills
+            columns:
+              - column: { name: id, type: BIGSERIAL, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: vacancy_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: skill_id, type: INT, constraints: { nullable: false } }
+              - column: { name: importance, type: VARCHAR(20), defaultValue: NICE_TO_HAVE, constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: vacancy_skills
+            baseColumnNames: vacancy_id
+            referencedTableName: vacancies
+            referencedColumnNames: id
+            constraintName: fk_vacancy_skills_vacancy
+        - addForeignKeyConstraint:
+            baseTableName: vacancy_skills
+            baseColumnNames: skill_id
+            referencedTableName: skills
+            referencedColumnNames: id
+            constraintName: fk_vacancy_skills_skill
+        - addUniqueConstraint:
+            tableName: vacancy_skills
+            columnNames: vacancy_id, skill_id
+            constraintName: uq_vacancy_skills_vacancy_skill
+
+  - changeSet:
+      id: 016-create-recommendations
+      author: diploma
+      changes:
+        - createTable:
+            tableName: recommendations
+            columns:
+              - column: { name: id, type: BIGSERIAL, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: user_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: vacancy_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: score, type: SMALLINT, constraints: { nullable: false } }
+              - column: { name: sbert_score, type: SMALLINT }
+              - column: { name: skills_coverage, type: SMALLINT }
+              - column: { name: created_at, type: TIMESTAMP, defaultValueComputed: now(), constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, defaultValueComputed: now(), constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: recommendations
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_recommendations_user
+        - addForeignKeyConstraint:
+            baseTableName: recommendations
+            baseColumnNames: vacancy_id
+            referencedTableName: vacancies
+            referencedColumnNames: id
+            constraintName: fk_recommendations_vacancy
+        - addUniqueConstraint:
+            tableName: recommendations
+            columnNames: user_id, vacancy_id
+            constraintName: uq_recommendations_user_vacancy
+        - createIndex:
+            tableName: recommendations
+            indexName: idx_recommendations_user_score
+            columns:
+              - column: { name: user_id }
+              - column: { name: score }
+
+  - changeSet:
+      id: 017-create-saved-vacancies
+      author: diploma
+      changes:
+        - createTable:
+            tableName: saved_vacancies
+            columns:
+              - column: { name: id, type: BIGSERIAL, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: user_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: vacancy_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: saved_at, type: TIMESTAMP, defaultValueComputed: now(), constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: saved_vacancies
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_saved_vacancies_user
+        - addForeignKeyConstraint:
+            baseTableName: saved_vacancies
+            baseColumnNames: vacancy_id
+            referencedTableName: vacancies
+            referencedColumnNames: id
+            constraintName: fk_saved_vacancies_vacancy
+        - addUniqueConstraint:
+            tableName: saved_vacancies
+            columnNames: user_id, vacancy_id
+            constraintName: uq_saved_vacancies_user_vacancy
+
+  - changeSet:
+      id: 018-create-trajectories
+      author: diploma
+      changes:
+        - createTable:
+            tableName: trajectories
+            columns:
+              - column: { name: id, type: BIGSERIAL, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: user_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: vacancy_id, type: BIGINT }
+              - column: { name: active, type: BOOLEAN, defaultValueBoolean: true, constraints: { nullable: false } }
+              - column: { name: total_steps, type: INT, defaultValueNumeric: 0, constraints: { nullable: false } }
+              - column: { name: completed_steps, type: INT, defaultValueNumeric: 0, constraints: { nullable: false } }
+              - column: { name: hours_per_week, type: SMALLINT, defaultValueNumeric: 15, constraints: { nullable: false } }
+              - column: { name: weeks, type: SMALLINT, defaultValueNumeric: 4, constraints: { nullable: false } }
+              - column: { name: created_at, type: TIMESTAMP, defaultValueComputed: now(), constraints: { nullable: false } }
+              - column: { name: completed_at, type: TIMESTAMP }
+        - addForeignKeyConstraint:
+            baseTableName: trajectories
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_trajectories_user
+        - addForeignKeyConstraint:
+            baseTableName: trajectories
+            baseColumnNames: vacancy_id
+            referencedTableName: vacancies
+            referencedColumnNames: id
+            constraintName: fk_trajectories_vacancy
+
+  - changeSet:
+      id: 019-create-trajectory-steps
+      author: diploma
+      changes:
+        - createTable:
+            tableName: trajectory_steps
+            columns:
+              - column: { name: id, type: BIGSERIAL, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: trajectory_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: user_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: skill_id, type: INT }
+              - column: { name: title, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: description, type: TEXT }
+              - column: { name: type, type: VARCHAR(30), defaultValue: LEARN }
+              - column: { name: estimated_hours, type: SMALLINT }
+              - column: { name: week, type: SMALLINT, constraints: { nullable: false } }
+              - column: { name: order, type: SMALLINT, constraints: { nullable: false } }
+              - column: { name: status, type: VARCHAR(20), defaultValue: PENDING, constraints: { nullable: false } }
+              - column: { name: progress_percent, type: SMALLINT, defaultValueNumeric: 0 }
+              - column: { name: note, type: TEXT }
+              - column: { name: deadline, type: DATE }
+              - column: { name: completed_at, type: TIMESTAMP }
+              - column: { name: created_at, type: TIMESTAMP, defaultValueComputed: now(), constraints: { nullable: false } }
+              - column: { name: updated_at, type: TIMESTAMP, defaultValueComputed: now(), constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: trajectory_steps
+            baseColumnNames: trajectory_id
+            referencedTableName: trajectories
+            referencedColumnNames: id
+            constraintName: fk_trajectory_steps_trajectory
+        - addForeignKeyConstraint:
+            baseTableName: trajectory_steps
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_trajectory_steps_user
+        - addForeignKeyConstraint:
+            baseTableName: trajectory_steps
+            baseColumnNames: skill_id
+            referencedTableName: skills
+            referencedColumnNames: id
+            constraintName: fk_trajectory_steps_skill
+
+  - changeSet:
+      id: 020-create-step-resources
+      author: diploma
+      changes:
+        - createTable:
+            tableName: step_resources
+            columns:
+              - column: { name: id, type: BIGSERIAL, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: step_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: title, type: VARCHAR(255), constraints: { nullable: false } }
+              - column: { name: url, type: VARCHAR(500) }
+              - column: { name: type, type: VARCHAR(30) }
+        - addForeignKeyConstraint:
+            baseTableName: step_resources
+            baseColumnNames: step_id
+            referencedTableName: trajectory_steps
+            referencedColumnNames: id
+            constraintName: fk_step_resources_step

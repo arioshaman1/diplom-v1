@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: 021-create-user-vacancies
+      author: diploma
+      changes:
+        - createTable:
+            tableName: user_vacancies
+            columns:
+              - column: { name: id, type: BIGSERIAL, constraints: { primaryKey: true, nullable: false } }
+              - column: { name: user_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: vacancy_id, type: BIGINT, constraints: { nullable: false } }
+              - column: { name: imported_at, type: TIMESTAMP, defaultValueComputed: now(), constraints: { nullable: false } }
+        - addForeignKeyConstraint:
+            baseTableName: user_vacancies
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_user_vacancies_user
+        - addForeignKeyConstraint:
+            baseTableName: user_vacancies
+            baseColumnNames: vacancy_id
+            referencedTableName: vacancies
+            referencedColumnNames: id
+            constraintName: fk_user_vacancies_vacancy
+        - addUniqueConstraint:
+            tableName: user_vacancies
+            columnNames: user_id, vacancy_id
+            constraintName: uq_user_vacancies_user_vacancy
+        - createIndex:
+            tableName: user_vacancies
+            indexName: idx_user_vacancies_user_imported
+            columns:
+              - column: { name: user_id }
+              - column: { name: imported_at }
