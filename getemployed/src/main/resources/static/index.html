@@ -77,6 +77,144 @@
     </div>
   </div>
 
+  <!-- ─── ONBOARDING SCREEN ─── -->
+  <div id="screen-onboarding" class="screen">
+    <div class="onboarding-shell">
+      <aside class="onboarding-side">
+        <div class="sidebar-brand">
+          <span class="brand-icon">◈</span>
+          <span class="brand-name">GetEmployed</span>
+        </div>
+        <div class="onboarding-summary">
+          <div class="summary-kicker">AI career path</div>
+          <div class="summary-title">Вакансии, навыки и траектория в одном сценарии</div>
+          <div class="summary-line"></div>
+        </div>
+        <div class="onboarding-progress">
+          <div class="onboarding-step active" data-on-step="1">
+            <span>1</span>
+            <div>
+              <strong>Цель</strong>
+              <small>роль, формат, рынок</small>
+            </div>
+          </div>
+          <div class="onboarding-step" data-on-step="2">
+            <span>2</span>
+            <div>
+              <strong>Навыки</strong>
+              <small>что уже умеешь</small>
+            </div>
+          </div>
+          <div class="onboarding-step" data-on-step="3">
+            <span>3</span>
+            <div>
+              <strong>План</strong>
+              <small>режим подготовки</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="onboarding-main">
+        <section class="onboarding-panel active" data-panel="1">
+          <p class="eyebrow">Карьерный тест</p>
+          <h1 class="onboarding-title">Поймём, какая работа тебе подходит</h1>
+          <p class="onboarding-note">Это не только про IT: выбери интересы, формат работы и сильные стороны. Эти ответы сохранятся в профиле и будут влиять на подбор вакансий и траекторию.</p>
+          <div class="onboarding-grid">
+            <div class="form-group">
+              <label>Желаемая роль или направление</label>
+              <input type="text" id="on-goal" placeholder="Например: администратор, 1С, продажи, аналитик" />
+            </div>
+            <div class="form-group">
+              <label>Текущий опыт</label>
+              <select id="on-level">
+                <option value="INTERN">Без опыта / стажировка</option>
+                <option value="JUNIOR" selected>Начальный опыт</option>
+                <option value="MIDDLE">Уверенный специалист</option>
+                <option value="SENIOR">Сильный специалист</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Город</label>
+              <input type="text" id="on-city" placeholder="Казань" />
+            </div>
+            <div class="form-group">
+              <label>Город HH</label>
+              <select id="on-area"></select>
+            </div>
+            <div class="form-group">
+              <label>Зарплата от</label>
+              <input type="number" id="on-salary-min" placeholder="80000" />
+            </div>
+            <div class="form-group">
+              <label>Формат</label>
+              <label class="switch-row"><input type="checkbox" id="on-remote" /> Удалённо</label>
+            </div>
+          </div>
+          <div class="test-block">
+            <label>Что тебе ближе</label>
+            <div class="choice-grid" id="on-interest-options"></div>
+          </div>
+          <div class="test-block">
+            <label>Сильные стороны</label>
+            <div class="choice-grid" id="on-strength-options"></div>
+          </div>
+        </section>
+
+        <section class="onboarding-panel" data-panel="2">
+          <p class="eyebrow">Самооценка</p>
+          <h1 class="onboarding-title">Отметь текущие умения</h1>
+          <p class="onboarding-note">Это поможет точнее считать совпадение с вакансиями. Если навыков пока нет, оставь список пустым и продолжи.</p>
+          <div class="skill-preset-grid" id="on-skill-presets"></div>
+          <div class="onboarding-inline-form">
+            <input type="text" id="on-custom-skill" placeholder="Добавить свой навык" />
+            <button class="btn-sm" id="on-add-custom-skill">Добавить</button>
+          </div>
+          <div class="onboarding-selected" id="on-selected-skills"></div>
+          <button class="btn-ghost onboarding-skip" id="on-skip-skills">Навыков пока нет</button>
+        </section>
+
+        <section class="onboarding-panel" data-panel="3">
+          <p class="eyebrow">Режим</p>
+          <h1 class="onboarding-title">Настроим траекторию под твой темп</h1>
+          <div class="onboarding-grid">
+            <div class="form-group">
+              <label>Часов в неделю</label>
+              <input type="number" id="on-hours" value="12" min="5" max="40" />
+            </div>
+            <div class="form-group">
+              <label>Недель подготовки</label>
+              <input type="number" id="on-weeks" value="4" min="2" max="8" />
+            </div>
+            <div class="form-group">
+              <label>Фокус</label>
+              <select id="on-focus">
+                <option value="practice">Больше практики</option>
+                <option value="theory">Закрыть теорию</option>
+                <option value="project">Собрать проект</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Что учесть модели</label>
+              <textarea id="on-ai-request" rows="3" placeholder="Например: хочу больше задач на Spring Boot и подготовку к собеседованию"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Импорт вакансий</label>
+              <label class="switch-row"><input type="checkbox" id="on-import" checked /> Подтянуть вакансии с HH</label>
+            </div>
+          </div>
+          <div id="onboarding-status" class="import-status hidden"></div>
+        </section>
+
+        <div class="onboarding-actions">
+          <button class="btn-ghost" id="on-prev">Назад</button>
+          <button class="btn-primary" id="on-next">Дальше</button>
+          <button class="btn-primary hidden" id="on-finish">Начать</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
   <!-- ─── APP SHELL ─── -->
   <div id="screen-app" class="screen">
     <!-- Sidebar -->
@@ -186,11 +324,11 @@
           <div class="import-grid">
             <div class="form-group">
               <label>Роль / запрос</label>
-              <input type="text" id="imp-role" placeholder="java backend" />
+              <input type="text" id="imp-role" placeholder="Например: бухгалтер, администратор, продажи" />
             </div>
             <div class="form-group">
-              <label>ID региона HH</label>
-              <input type="number" id="imp-area" placeholder="88" value="88" />
+              <label>Город HH</label>
+              <select id="imp-area"></select>
             </div>
             <div class="form-group">
               <label>Опыт</label>
@@ -244,6 +382,7 @@
           <div>
             <h1 class="page-title">Траектория</h1>
             <p class="page-sub" id="traj-meta">—</p>
+            <div class="ai-status" id="ai-status">Ollama: проверка...</div>
           </div>
           <div class="traj-actions">
             <button class="btn-accent" id="btn-traj-gen-open">+ Создать</button>
@@ -255,8 +394,8 @@
         <div class="import-panel hidden" id="traj-gen-panel">
           <div class="import-grid">
             <div class="form-group">
-              <label>ID вакансии</label>
-              <input type="text" id="gen-vacancy-id" placeholder="uuid вакансии" />
+              <label>Вакансия</label>
+              <select id="gen-vacancy-id"></select>
             </div>
             <div class="form-group">
               <label>Часов в неделю</label>
@@ -265,6 +404,19 @@
             <div class="form-group">
               <label>Недель</label>
               <input type="number" id="gen-weeks" value="4" min="2" max="8" />
+            </div>
+            <div class="form-group">
+              <label>Фокус</label>
+              <select id="gen-focus">
+                <option value="practice">Больше практики</option>
+                <option value="theory">Закрыть теорию</option>
+                <option value="project">Собрать проект</option>
+                <option value="interview">Подготовка к интервью</option>
+              </select>
+            </div>
+            <div class="form-group ai-request-field">
+              <label>Цель и пожелания</label>
+              <textarea id="gen-ai-request" rows="3" placeholder="Например: хочу больше задач по REST и SQL, проект для портфолио и подготовку к junior interview"></textarea>
             </div>
           </div>
           <div class="import-actions">
@@ -294,6 +446,15 @@
             <option value="SKIPPED">Пропущен</option>
           </select>
           <button class="btn-sm" id="btn-traj-filter">Фильтр</button>
+        </div>
+
+        <div class="generation-loader hidden" id="trajectory-loader">
+          <div class="loader-orbit"><span></span></div>
+          <div>
+            <div class="loader-title">Генерирую траекторию</div>
+            <div class="loader-text" id="trajectory-loader-text">Отправляю вакансию и твои пожелания в Ollama...</div>
+            <div class="loader-time" id="trajectory-loader-time">0 сек</div>
+          </div>
         </div>
 
         <div id="trajectory-steps-list" class="steps-list"></div>
@@ -332,7 +493,10 @@
       <section class="page" id="page-profile">
         <header class="page-header">
           <h1 class="page-title">Профиль</h1>
-          <button class="btn-primary" id="btn-save-profile">Сохранить</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn-ghost" id="btn-retake-onboarding">Перепройти тест</button>
+            <button class="btn-primary" id="btn-save-profile">Сохранить</button>
+          </div>
         </header>
 
         <div class="profile-grid">
@@ -356,8 +520,8 @@
               <input type="text" id="prof-city" placeholder="Казань" />
             </div>
             <div class="form-group">
-              <label>ID региона HH</label>
-              <input type="number" id="prof-area" placeholder="88" />
+              <label>Город HH</label>
+              <select id="prof-area"></select>
             </div>
           </div>
           <div class="card">

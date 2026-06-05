@@ -14,4 +14,3 @@ class GetemployedApplicationTests {
   void contextLoads() {}
 }
 
-// unit tests

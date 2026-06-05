@@ -54,6 +54,8 @@ spotless {
 }
 
 dependencies {
+	implementation platform('org.springframework.ai:spring-ai-bom:1.1.6')
+
 	// Spring starters
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -67,6 +69,7 @@ dependencies {
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'

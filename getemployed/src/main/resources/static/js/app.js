@@ -20,7 +20,91 @@ const state = {
   vacEmployer: '',
   trajWeek: '',
   trajStatus: '',
+  onboardingStep: 1,
+  onboardingSkills: new Map(),
+  onboardingInterests: new Set(),
+  onboardingStrengths: new Set(),
+  areas: [],
+  trajectoryVacancies: [],
+  trajectoryLoaderTimer: null,
+  trajectoryLoaderStartedAt: 0,
 };
+
+const skillPresets = [
+  ['Коммуникация с клиентами', 2], ['Работа с документами', 2], ['Excel', 2], ['Грамотная речь', 3],
+  ['Продажи', 1], ['Переговоры', 1], ['Администрирование', 1], ['Работа в команде', 3],
+  ['1С:Предприятие', 1], ['SQL', 1], ['Аналитика требований', 1], ['Тестирование', 1],
+  ['Java', 1], ['Spring Boot', 1], ['JavaScript', 1], ['Git', 1],
+];
+
+const interestOptions = [
+  ['clients', 'Общаться с людьми', ['Коммуникация с клиентами', 2], ['Грамотная речь', 2]],
+  ['sales', 'Продавать и убеждать', ['Продажи', 1], ['Переговоры', 1]],
+  ['docs', 'Документы и порядок', ['Работа с документами', 2], ['Excel', 1]],
+  ['numbers', 'Таблицы и расчёты', ['Excel', 2], ['Аналитика данных', 1]],
+  ['systems', 'Бизнес-системы и 1С', ['1С:Предприятие', 1], ['Язык запросов 1С', 1]],
+  ['tech', 'Технологии и разработка', ['Git', 1], ['SQL', 1]],
+  ['support', 'Помогать пользователям', ['Техническая поддержка', 1], ['Коммуникация с клиентами', 2]],
+  ['creative', 'Тексты, визуал, маркетинг', ['Копирайтинг', 1], ['Маркетинг', 1]],
+];
+
+const strengthOptions = [
+  ['accuracy', 'Внимательность'], ['learning', 'Быстро учусь'], ['empathy', 'Легко общаюсь'],
+  ['logic', 'Люблю разбираться'], ['routine', 'Нормально отношусь к рутине'], ['initiative', 'Беру инициативу'],
+];
+
+const majorRussianCities = [
+  { id: 1, name: 'Москва' },
+  { id: 2, name: 'Санкт-Петербург' },
+  { id: 4, name: 'Новосибирск' },
+  { id: 3, name: 'Екатеринбург' },
+  { id: 88, name: 'Казань' },
+  { id: 66, name: 'Нижний Новгород' },
+  { id: 104, name: 'Челябинск' },
+  { id: 78, name: 'Самара' },
+  { id: 76, name: 'Омск' },
+  { id: 99, name: 'Ростов-на-Дону' },
+  { id: 72, name: 'Уфа' },
+  { id: 68, name: 'Красноярск' },
+  { id: 26, name: 'Воронеж' },
+  { id: 53, name: 'Пермь' },
+  { id: 54, name: 'Волгоград' },
+  { id: 55, name: 'Краснодар' },
+  { id: 75, name: 'Саратов' },
+  { id: 24, name: 'Тюмень' },
+  { id: 95, name: 'Тольятти' },
+  { id: 112, name: 'Ижевск' },
+  { id: 98, name: 'Барнаул' },
+  { id: 96, name: 'Ульяновск' },
+  { id: 58, name: 'Иркутск' },
+  { id: 77, name: 'Хабаровск' },
+  { id: 44, name: 'Ярославль' },
+  { id: 79, name: 'Владивосток' },
+  { id: 92, name: 'Махачкала' },
+  { id: 59, name: 'Томск' },
+  { id: 51, name: 'Оренбург' },
+  { id: 56, name: 'Кемерово' },
+  { id: 10, name: 'Новокузнецк' },
+  { id: 67, name: 'Рязань' },
+  { id: 11, name: 'Астрахань' },
+  { id: 21, name: 'Пенза' },
+  { id: 90, name: 'Липецк' },
+  { id: 36, name: 'Киров' },
+  { id: 91, name: 'Чебоксары' },
+  { id: 63, name: 'Калининград' },
+  { id: 13, name: 'Балашиха' },
+  { id: 22, name: 'Курск' },
+  { id: 32, name: 'Севастополь' },
+  { id: 35, name: 'Сочи' },
+  { id: 80, name: 'Улан-Удэ' },
+  { id: 15, name: 'Ставрополь' },
+  { id: 23, name: 'Тверь' },
+  { id: 69, name: 'Магнитогорск' },
+  { id: 48, name: 'Иваново' },
+  { id: 49, name: 'Брянск' },
+  { id: 100, name: 'Белгород' },
+  { id: 84, name: 'Сургут' },
+];
 
 // ──────────── API HELPER ────────────
 async function api(method, path, body, params) {
@@ -53,15 +137,56 @@ function toast(msg, type = 'success') {
 }
 
 // ──────────── SCREEN SWITCH ────────────
-function showApp() {
+async function showApp() {
   document.getElementById('screen-auth').classList.remove('active');
+  document.getElementById('screen-onboarding').classList.remove('active');
+  try {
+    const profile = await api('GET', '/profile');
+    if (!profile.data.onboardingCompleted) {
+      showOnboarding(profile.data);
+      return;
+    }
+  } catch(e) {
+    toast('Ошибка загрузки профиля: ' + e.message, 'error');
+  }
   document.getElementById('screen-app').classList.add('active');
   loadDashboard();
 }
 
+async function loadAreas() {
+  if (state.areas.length) return state.areas;
+  state.areas = majorRussianCities;
+  fillAreaSelect('on-area', 88);
+  fillAreaSelect('imp-area', 88);
+  fillAreaSelect('prof-area', 88);
+  return state.areas;
+}
+
+function fillAreaSelect(id, selected) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const current = selected ?? el.value;
+  el.innerHTML = state.areas.map(a =>
+    `<option value="${a.id}" ${String(a.id) === String(current) ? 'selected' : ''}>${esc(a.name)}</option>`
+  ).join('');
+}
+
 function showAuth() {
   document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-onboarding').classList.remove('active');
   document.getElementById('screen-auth').classList.add('active');
+}
+
+function showOnboarding(profile) {
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-auth').classList.remove('active');
+  document.getElementById('screen-onboarding').classList.add('active');
+  loadAreas().then(() => fillAreaSelect('on-area', profile?.areaId || 88));
+  if (profile) fillOnboardingProfile(profile);
+  renderChoiceOptions();
+  renderSkillPresets();
+  renderSelectedOnboardingSkills();
+  setOnboardingStep(1);
 }
 
 // ──────────── NAV ────────────
@@ -76,7 +201,7 @@ document.querySelectorAll('.nav-link').forEach(a => {
     // Lazy load
     if (page === 'vacancies') loadVacancies();
     if (page === 'recommendations') loadRecs();
-    if (page === 'trajectory') loadTrajectory();
+    if (page === 'trajectory') { loadTrajectory(); loadTrajectoryVacancyOptions(); }
     if (page === 'skills') loadSkills();
     if (page === 'profile') loadProfile();
   });
@@ -156,6 +281,228 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
 });
 
 // ──────────────────────────────
+//  ONBOARDING
+// ──────────────────────────────
+function fillOnboardingProfile(profile) {
+  document.getElementById('on-goal').value = profile.goal || '';
+  document.getElementById('on-level').value = profile.level || 'JUNIOR';
+  document.getElementById('on-city').value = profile.city || '';
+  fillAreaSelect('on-area', profile.areaId || 88);
+  document.getElementById('on-salary-min').value = profile.salaryMin || '';
+  document.getElementById('on-remote').checked = !!profile.remote;
+}
+
+function renderChoiceOptions() {
+  const interests = document.getElementById('on-interest-options');
+  const strengths = document.getElementById('on-strength-options');
+  if (interests) {
+    interests.innerHTML = interestOptions.map(([id, label]) => `
+      <button class="choice-chip ${state.onboardingInterests.has(id) ? 'active' : ''}" onclick="toggleOnboardingInterest('${id}')">${esc(label)}</button>
+    `).join('');
+  }
+  if (strengths) {
+    strengths.innerHTML = strengthOptions.map(([id, label]) => `
+      <button class="choice-chip ${state.onboardingStrengths.has(id) ? 'active' : ''}" onclick="toggleOnboardingStrength('${id}')">${esc(label)}</button>
+    `).join('');
+  }
+}
+
+function toggleOnboardingInterest(id) {
+  if (state.onboardingInterests.has(id)) {
+    state.onboardingInterests.delete(id);
+  } else {
+    state.onboardingInterests.add(id);
+    const option = interestOptions.find(([optionId]) => optionId === id);
+    if (option) option.slice(2).forEach(([skill, level]) => state.onboardingSkills.set(skill, level));
+  }
+  renderChoiceOptions();
+  renderSkillPresets();
+  renderSelectedOnboardingSkills();
+}
+
+function toggleOnboardingStrength(id) {
+  if (state.onboardingStrengths.has(id)) state.onboardingStrengths.delete(id);
+  else state.onboardingStrengths.add(id);
+  renderChoiceOptions();
+}
+
+function setOnboardingStep(step) {
+  state.onboardingStep = Math.min(Math.max(step, 1), 3);
+  document.querySelectorAll('.onboarding-panel').forEach(panel => {
+    panel.classList.toggle('active', Number(panel.dataset.panel) === state.onboardingStep);
+  });
+  document.querySelectorAll('.onboarding-step').forEach(item => {
+    item.classList.toggle('active', Number(item.dataset.onStep) === state.onboardingStep);
+    item.classList.toggle('done', Number(item.dataset.onStep) < state.onboardingStep);
+  });
+  document.getElementById('on-prev').disabled = state.onboardingStep === 1;
+  document.getElementById('on-next').classList.toggle('hidden', state.onboardingStep === 3);
+  document.getElementById('on-finish').classList.toggle('hidden', state.onboardingStep !== 3);
+}
+
+function renderSkillPresets() {
+  const el = document.getElementById('on-skill-presets');
+  el.innerHTML = skillPresets.map(([name, level]) => `
+    <button class="skill-preset ${state.onboardingSkills.has(name) ? 'active' : ''}" onclick="toggleOnboardingSkill('${name}', ${level})">
+      <span>${esc(name)}</span>
+      <small>${level}/5</small>
+    </button>
+  `).join('');
+}
+
+function toggleOnboardingSkill(name, level = 1) {
+  if (state.onboardingSkills.has(name)) {
+    state.onboardingSkills.delete(name);
+  } else {
+    state.onboardingSkills.set(name, level);
+  }
+  renderSkillPresets();
+  renderSelectedOnboardingSkills();
+}
+
+function renderSelectedOnboardingSkills() {
+  const el = document.getElementById('on-selected-skills');
+  const items = Array.from(state.onboardingSkills.entries());
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state compact">Выбери навыки выше или добавь свой</div>';
+    return;
+  }
+  el.innerHTML = items.map(([name, level]) => `
+    <div class="selected-skill">
+      <span>${esc(name)}</span>
+      <input type="number" min="0" max="5" value="${level}" onchange="setOnboardingSkillLevel('${esc(name)}', this.value)" />
+      <button class="btn-sm" onclick="toggleOnboardingSkill('${esc(name)}')">Убрать</button>
+    </div>
+  `).join('');
+}
+
+function setOnboardingSkillLevel(name, value) {
+  const level = Math.min(Math.max(parseInt(value, 10) || 0, 0), 5);
+  state.onboardingSkills.set(name, level);
+  renderSelectedOnboardingSkills();
+}
+
+document.getElementById('on-prev').addEventListener('click', () => setOnboardingStep(state.onboardingStep - 1));
+document.getElementById('on-next').addEventListener('click', () => setOnboardingStep(state.onboardingStep + 1));
+document.getElementById('on-skip-skills').addEventListener('click', () => {
+  state.onboardingSkills.clear();
+  renderSkillPresets();
+  renderSelectedOnboardingSkills();
+  setOnboardingStep(3);
+});
+document.getElementById('on-add-custom-skill').addEventListener('click', () => {
+  const name = document.getElementById('on-custom-skill').value.trim();
+  if (!name) return;
+  state.onboardingSkills.set(name, 1);
+  document.getElementById('on-custom-skill').value = '';
+  renderSkillPresets();
+  renderSelectedOnboardingSkills();
+});
+
+document.getElementById('on-finish').addEventListener('click', async () => {
+  if (!validateOnboarding()) return;
+  const statusEl = document.getElementById('onboarding-status');
+  const finishBtn = document.getElementById('on-finish');
+  statusEl.className = 'import-status accepted';
+  statusEl.classList.remove('hidden');
+  statusEl.textContent = 'Сохраняю профиль и навыки...';
+  finishBtn.disabled = true;
+
+  const profileBody = {
+    goal: buildOnboardingGoal(),
+    level: document.getElementById('on-level').value,
+    city: document.getElementById('on-city').value.trim(),
+    areaId: +document.getElementById('on-area').value || undefined,
+    salaryMin: +document.getElementById('on-salary-min').value || undefined,
+    salaryMax: undefined,
+    remote: document.getElementById('on-remote').checked,
+  };
+  const trajectoryPrefs = {
+    hoursPerWeek: +document.getElementById('on-hours').value,
+    weeks: +document.getElementById('on-weeks').value,
+    focus: document.getElementById('on-focus').value,
+    userRequest: document.getElementById('on-ai-request').value.trim(),
+  };
+
+  try {
+    await api('PUT', '/profile', profileBody);
+    for (const [name, level] of state.onboardingSkills.entries()) {
+      await api('POST', '/profile/skills', { name, level }).catch(e => {
+        if (!e.message.toLowerCase().includes('уже')) throw e;
+      });
+    }
+
+    if (document.getElementById('on-import').checked) {
+      statusEl.textContent = 'Импортирую вакансии с HH...';
+      await api('POST', '/vacancies/import', undefined, {
+        role: profileBody.goal,
+        areaId: profileBody.areaId || 1,
+        pages: 3,
+      });
+    }
+
+    statusEl.textContent = 'Пересчитываю рекомендации...';
+    await api('POST', '/recommendations/rebuild').catch(() => null);
+    await generateInitialTrajectoryFromRecommendations(statusEl, trajectoryPrefs);
+
+    document.getElementById('screen-onboarding').classList.remove('active');
+    document.getElementById('screen-app').classList.add('active');
+    toast('Онбординг завершён');
+    loadDashboard();
+  } catch(e) {
+    statusEl.className = 'import-status error';
+    statusEl.textContent = 'Ошибка: ' + e.message;
+  } finally {
+    finishBtn.disabled = false;
+  }
+});
+
+function validateOnboarding() {
+  const role = document.getElementById('on-goal').value.trim();
+  if (!role && state.onboardingInterests.size === 0) {
+    setOnboardingStep(1);
+    toast('Укажи направление или выбери хотя бы один интерес', 'error');
+    return false;
+  }
+  const hours = +document.getElementById('on-hours').value;
+  const weeks = +document.getElementById('on-weeks').value;
+  if (!hours || hours < 5 || hours > 40) {
+    setOnboardingStep(3);
+    toast('Часы в неделю должны быть от 5 до 40', 'error');
+    return false;
+  }
+  if (!weeks || weeks < 2 || weeks > 8) {
+    setOnboardingStep(3);
+    toast('Количество недель должно быть от 2 до 8', 'error');
+    return false;
+  }
+  return true;
+}
+
+function buildOnboardingGoal() {
+  const role = document.getElementById('on-goal').value.trim();
+  const interestLabels = interestOptions
+      .filter(([id]) => state.onboardingInterests.has(id))
+      .map(([, label]) => label);
+  const strengthLabels = strengthOptions
+      .filter(([id]) => state.onboardingStrengths.has(id))
+      .map(([, label]) => label);
+  const parts = [];
+  if (role) parts.push(`Желаемая роль: ${role}`);
+  if (interestLabels.length) parts.push(`Интересы: ${interestLabels.join(', ')}`);
+  if (strengthLabels.length) parts.push(`Сильные стороны: ${strengthLabels.join(', ')}`);
+  return parts.join('. ') || 'Подобрать подходящую вакансию по навыкам и предпочтениям';
+}
+
+async function generateInitialTrajectoryFromRecommendations(statusEl, trajectoryPrefs) {
+  statusEl.textContent = 'Создаю первую траекторию через Ollama...';
+  const recs = await api('GET', '/recommendations', null, { page: 0, limit: 1, minScore: 0 }).catch(() => null);
+  const first = recs?.data?.[0];
+  if (!first?.vacancyId) return;
+  await api('POST', '/trajectory/generate', trajectoryPrefs, { vacancyId: first.vacancyId }).catch(() => null);
+}
+
+// ──────────────────────────────
 //  DASHBOARD
 // ──────────────────────────────
 async function loadDashboard() {
@@ -231,13 +578,13 @@ function renderTopRecs(recs) {
   const el = document.getElementById('top-recs-list');
   el.innerHTML = recs.map(r => `
     <div class="rec-item" onclick="openVacancy('${r.vacancyId}')">
-      <div class="rec-title">${esc(r.title)}</div>
-      <div class="rec-employer">${esc(r.employer || '')}</div>
+      <div class="rec-title">${esc(r.title || r.vacancy?.title || '')}</div>
+      <div class="rec-employer">${esc(r.employer || r.vacancy?.employer || '')}</div>
       <div class="rec-score-row">
         <span class="rec-score">${r.score}%</span>
-        <span class="rec-salary">${salaryStr(r.salaryMin, r.salaryMax)}</span>
+        <span class="rec-salary">${salaryStr(r.salaryMin || r.vacancy?.salaryMin, r.salaryMax || r.vacancy?.salaryMax)}</span>
       </div>
-      ${r.gaps?.length ? `<div class="rec-gaps">${r.gaps.map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>` : ''}
+      ${r.gaps?.length ? `<div class="rec-gaps">${r.gaps.map(g => `<span class="tag">${esc(g.skill || g)}</span>`).join('')}</div>` : ''}
     </div>
   `).join('') || '<div class="empty-state">Нет рекомендаций</div>';
 }
@@ -321,6 +668,7 @@ document.getElementById('vac-sort').addEventListener('change', () => {
 // Import
 document.getElementById('btn-import-open').addEventListener('click', () => {
   document.getElementById('import-panel').classList.toggle('hidden');
+  loadAreas();
 });
 document.getElementById('btn-import-close').addEventListener('click', () => {
   document.getElementById('import-panel').classList.add('hidden');
@@ -358,9 +706,13 @@ async function pollImport(jobId, statusEl) {
     try {
       const r = await api('GET', `/vacancies/import/${jobId}`);
       const d = r.data;
-      statusEl.textContent = `Статус: ${d.status} · Импортировано: ${d.imported ?? '?'} · Ошибки: ${d.errors ?? 0}`;
+      statusEl.textContent = `Статус: ${d.status} · Импортировано: ${d.imported ?? '?'} · Ошибки: ${d.errors ?? 0}${d.message ? ' · ' + d.message : ''}`;
       if (d.status !== 'COMPLETED' && d.status !== 'FAILED') setTimeout(tick, 3000);
-      else if (d.status === 'COMPLETED') { toast(`Импортировано ${d.imported} вакансий`); loadVacancies(); }
+      else if (d.status === 'COMPLETED') {
+        statusEl.textContent = `Импортировано ${d.imported}. Нажми «Пересчитать», чтобы построить рекомендации.`;
+        toast(`Импортировано ${d.imported} вакансий`);
+        loadVacancies();
+      }
     } catch(_) {}
   };
   setTimeout(tick, 3000);
@@ -427,8 +779,8 @@ async function openVacancy(id) {
 
 function generateTrajModal(vacancyId) {
   closeModal();
-    document.querySelector('[data-page="trajectory"]').click();
-  document.getElementById('gen-vacancy-id').value = vacancyId;
+  document.querySelector('[data-page="trajectory"]').click();
+  loadTrajectoryVacancyOptions(vacancyId);
   document.getElementById('traj-gen-panel').classList.remove('hidden');
 }
 
@@ -468,6 +820,7 @@ async function loadRecs() {
 //  TRAJECTORY
 // ──────────────────────────────
 async function loadTrajectory() {
+  loadAiStatus();
   try {
     const res = await api('GET', '/trajectory');
     const t = res.data;
@@ -495,6 +848,24 @@ async function loadTrajectory() {
   }
 }
 
+async function loadAiStatus() {
+  const el = document.getElementById('ai-status');
+  if (!el) return;
+  el.textContent = 'Ollama: проверка...';
+  el.className = 'ai-status';
+  try {
+    const res = await api('GET', '/trajectory/ai/status');
+    const s = res.data;
+    el.textContent = s.available
+      ? `Ollama: ${s.model} доступна`
+      : `Ollama: недоступна (${s.message})`;
+    el.classList.add(s.available ? 'ok' : 'fail');
+  } catch(e) {
+    el.textContent = 'Ollama: статус не получен';
+    el.classList.add('fail');
+  }
+}
+
 async function loadTrajectorySteps() {
   const el = document.getElementById('trajectory-steps-list');
   el.innerHTML = '<div class="loading">Загрузка шагов...</div>';
@@ -516,6 +887,7 @@ function renderSteps(steps, el) {
       <div class="step-status-dot ${dotCls}"></div>
       <div class="step-body">
         <div class="step-title">${esc(s.title)}</div>
+        ${s.description ? `<div class="step-desc">${esc(s.description)}</div>` : ''}
         <div class="step-meta">
           <span>${esc(s.skillName || '')}</span>
           <span>${typeLabel(s.type)}</span>
@@ -523,18 +895,37 @@ function renderSteps(steps, el) {
           <span>Нед.${s.week}</span>
           ${s.deadline ? `<span>до ${s.deadline}</span>` : ''}
         </div>
-        ${s.resources?.length ? `<div class="step-resources">
-          ${s.resources.map(r => `<a href="${r.url || '#'}" target="_blank" class="step-resource">${esc(r.title)}</a>`).join('')}
-        </div>` : ''}
+        <div class="step-resources" id="live-resources-${s.id}">
+          <button class="btn-sm" onclick="loadLiveResources('${s.id}')">Подобрать материалы</button>
+        </div>
+        ${s.note ? `<div class="step-note">${esc(s.note)}</div>` : ''}
       </div>
       <div class="step-card-progress">
         <div class="step-pct">${s.progressPercent || 0}%</div>
         <div style="margin-top:6px">
-          <button class="btn-sm" onclick="openStepModal('${s.id}','${s.status}',${s.progressPercent||0},'${esc(s.note||'')}')">Изменить</button>
+          <button class="btn-sm" onclick='openStepModal("${s.id}","${s.status}",${s.progressPercent||0},${JSON.stringify(s.note || '')})'>Изменить</button>
         </div>
       </div>
     </div>
   `}).join('');
+}
+
+function renderResourceLink(r) {
+  const title = esc(r.title || 'Ресурс');
+  if (!r.url) return `<span class="step-resource">${title}</span>`;
+  return `<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer" class="step-resource">${title}</a>`;
+}
+
+async function loadLiveResources(stepId) {
+  const el = document.getElementById('live-resources-' + stepId);
+  if (!el) return;
+  el.innerHTML = '<span class="step-resource">Ищу материалы...</span>';
+  try {
+    const res = await api('GET', `/trajectory/steps/${stepId}/resources/live`);
+    el.innerHTML = (res.data || []).map(renderResourceLink).join('') || '<span class="step-resource">Материалы не найдены</span>';
+  } catch(e) {
+    el.innerHTML = `<span class="step-resource">${esc(e.message)}</span>`;
+  }
 }
 
 document.getElementById('btn-traj-filter').addEventListener('click', () => {
@@ -546,6 +937,7 @@ document.getElementById('btn-traj-filter').addEventListener('click', () => {
 // Generate
 document.getElementById('btn-traj-gen-open').addEventListener('click', () => {
   document.getElementById('traj-gen-panel').classList.toggle('hidden');
+  loadTrajectoryVacancyOptions();
 });
 document.getElementById('btn-traj-gen-close').addEventListener('click', () => {
   document.getElementById('traj-gen-panel').classList.add('hidden');
@@ -554,13 +946,87 @@ document.getElementById('btn-traj-generate').addEventListener('click', async () 
   const vacancyId = document.getElementById('gen-vacancy-id').value.trim();
   const hoursPerWeek = +document.getElementById('gen-hours').value;
   const weeks = +document.getElementById('gen-weeks').value;
+  const focus = document.getElementById('gen-focus').value;
+  const userRequest = document.getElementById('gen-ai-request').value.trim();
+  if (!vacancyId) {
+    toast('Выбери вакансию для траектории. Если список пустой, сначала импортируй вакансии.', 'error');
+    return;
+  }
+  if (!hoursPerWeek || hoursPerWeek < 5 || hoursPerWeek > 40) {
+    toast('Часы в неделю должны быть от 5 до 40', 'error');
+    return;
+  }
+  if (!weeks || weeks < 2 || weeks > 8) {
+    toast('Количество недель должно быть от 2 до 8', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-traj-generate');
+  const originalText = btn.textContent;
   try {
-    await api('POST', '/trajectory/generate', { hoursPerWeek, weeks }, { vacancyId });
+    btn.disabled = true;
+    btn.textContent = 'Генерирую...';
+    showTrajectoryLoader();
+    toast('Генерирую траекторию. Локальная Ollama может отвечать до минуты.');
+    await api('POST', '/trajectory/generate', { hoursPerWeek, weeks, focus, userRequest }, { vacancyId });
     toast('Траектория создана!');
     document.getElementById('traj-gen-panel').classList.add('hidden');
     loadTrajectory();
   } catch(e) { toast(e.message, 'error'); }
+  finally {
+    hideTrajectoryLoader();
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
 });
+
+function showTrajectoryLoader() {
+  const loader = document.getElementById('trajectory-loader');
+  const text = document.getElementById('trajectory-loader-text');
+  const time = document.getElementById('trajectory-loader-time');
+  if (!loader || !time || !text) return;
+  state.trajectoryLoaderStartedAt = Date.now();
+  loader.classList.remove('hidden');
+  text.textContent = 'Ollama читает вакансию, навыки и пожелания. Обычно это занимает до минуты.';
+  time.textContent = '0 сек';
+  clearInterval(state.trajectoryLoaderTimer);
+  state.trajectoryLoaderTimer = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - state.trajectoryLoaderStartedAt) / 1000);
+    time.textContent = elapsed < 60 ? `${elapsed} сек` : `${Math.floor(elapsed / 60)} мин ${elapsed % 60} сек`;
+    if (elapsed >= 20 && elapsed < 45) {
+      text.textContent = 'Модель формирует шаги и подбирает ресурсы. На CPU это может быть медленно.';
+    } else if (elapsed >= 45) {
+      text.textContent = 'Если Ollama не успеет, сервер вернёт запасной план по вакансии.';
+    }
+  }, 1000);
+}
+
+function hideTrajectoryLoader() {
+  clearInterval(state.trajectoryLoaderTimer);
+  state.trajectoryLoaderTimer = null;
+  const loader = document.getElementById('trajectory-loader');
+  if (loader) loader.classList.add('hidden');
+}
+
+async function loadTrajectoryVacancyOptions(selectedId) {
+  const select = document.getElementById('gen-vacancy-id');
+  if (!select) return;
+  select.innerHTML = '<option value="">Загрузка вакансий...</option>';
+  try {
+    const res = await api('GET', '/vacancies', null, { page: 0, size: 30, sort: 'fetchedAt,desc' });
+    state.trajectoryVacancies = res.data || [];
+    if (!state.trajectoryVacancies.length) {
+      select.innerHTML = '<option value="">Сначала импортируй вакансии</option>';
+      return;
+    }
+    select.innerHTML = state.trajectoryVacancies.map(v => `
+      <option value="${v.id}" ${String(v.id) === String(selectedId) ? 'selected' : ''}>
+        ${esc(v.title)}${v.employer ? ' · ' + esc(v.employer) : ''}${v.area ? ' · ' + esc(v.area) : ''}
+      </option>
+    `).join('');
+  } catch(e) {
+    select.innerHTML = '<option value="">Не удалось загрузить вакансии</option>';
+  }
+}
 
 // Delete trajectory
 document.getElementById('btn-traj-delete').addEventListener('click', async () => {
@@ -708,6 +1174,7 @@ document.addEventListener('click', e => {
 // ──────────────────────────────
 async function loadProfile() {
   try {
+    await loadAreas();
     const [pr, sr] = await Promise.all([
       api('GET', '/profile'),
       api('GET', '/profile/stats'),
@@ -716,7 +1183,7 @@ async function loadProfile() {
     document.getElementById('prof-goal').value  = p.goal || '';
     document.getElementById('prof-level').value = p.level || 'JUNIOR';
     document.getElementById('prof-city').value  = p.city || '';
-    document.getElementById('prof-area').value  = p.areaId || '';
+    fillAreaSelect('prof-area', p.areaId || 88);
     document.getElementById('prof-sal-min').value = p.salaryMin || '';
     document.getElementById('prof-sal-max').value = p.salaryMax || '';
     document.getElementById('prof-remote').checked = !!p.remote;
@@ -746,6 +1213,15 @@ document.getElementById('btn-save-profile').addEventListener('click', async () =
     await api('PUT', '/profile', body);
     toast('Профиль сохранён');
   } catch(e) { toast(e.message, 'error'); }
+});
+
+document.getElementById('btn-retake-onboarding').addEventListener('click', async () => {
+  try {
+    const profile = await api('GET', '/profile');
+    showOnboarding(profile.data);
+  } catch(e) {
+    toast('Ошибка загрузки теста: ' + e.message, 'error');
+  }
 });
 
 // ──────────────────────────────
@@ -796,3 +1272,4 @@ if (state.token && state.user) {
 } else {
   showAuth();
 }
+loadAreas();

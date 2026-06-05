@@ -6,9 +6,9 @@ spring:
     import: optional:file:.env
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/getemployed
-    username: getemployed
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/getemployed}
+    username: ${DB_USERNAME:getemployed}
+    password: ${DB_PASSWORD:getemployed}
 
   mail:
     host: smtp.mail.ru
@@ -46,12 +46,26 @@ spring:
     redis:
       port: 6379
 
+  ai:
+    model:
+      chat: ollama
+    ollama:
+      # Spring on host -> http://localhost:11434. Spring in docker compose -> OLLAMA_BASE_URL=http://ollama:11434
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${OLLAMA_MODEL:llama3.2}
+          temperature: 0.2
+          num-ctx: 4096
+          num-predict: 900
 
 
 
 
 
 app:
+  ai:
+    trajectory-timeout-seconds: ${OLLAMA_TRAJECTORY_TIMEOUT_SECONDS:60}
   frontend:
     url: http://localhost:8080
     home-page-url: http://localhost:8080/?verify=success
@@ -77,4 +91,3 @@ app:
 jwt:
   secret: ${JWT_SECRET}
   ttl-minutes: 60
-

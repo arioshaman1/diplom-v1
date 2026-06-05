@@ -19,7 +19,7 @@ public class ProfileService {
   private final ProfileRepository profileRepository;
   private final ProfileMapper profileMapper;
 
-  @Transactional(readOnly = true)
+  @Transactional
   public ProfileDto get(User user) {
     return profileMapper.toDto(findOrCreate(user));
   }
@@ -36,7 +36,7 @@ public class ProfileService {
     return profileMapper.toDto(saved);
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public Stats stats(User user) {
     Profile profile = findOrCreate(user);
     int covered =
