@@ -201,7 +201,12 @@ document.querySelectorAll('.nav-link').forEach(a => {
     // Lazy load
     if (page === 'vacancies') loadVacancies();
     if (page === 'recommendations') loadRecs();
-    if (page === 'trajectory') { loadTrajectory(); loadTrajectoryVacancyOptions(); }
+    if (page === 'trajectory') {
+      loadTrajectory();
+      const pendingId = state.pendingTrajVacancyId || null;
+      state.pendingTrajVacancyId = null;
+      loadTrajectoryVacancyOptions(pendingId);
+    }
     if (page === 'skills') loadSkills();
     if (page === 'profile') loadProfile();
   });
@@ -405,7 +410,7 @@ document.getElementById('on-finish').addEventListener('click', async () => {
   const finishBtn = document.getElementById('on-finish');
   statusEl.className = 'import-status accepted';
   statusEl.classList.remove('hidden');
-  statusEl.textContent = 'Сохраняю профиль и навыки...';
+  statusEl.textContent = '🤖 ИИ сохраняет ваш профиль и навыки...';
   finishBtn.disabled = true;
 
   const profileBody = {
@@ -433,7 +438,7 @@ document.getElementById('on-finish').addEventListener('click', async () => {
     }
 
     if (document.getElementById('on-import').checked) {
-      statusEl.textContent = 'Импортирую вакансии с HH...';
+      statusEl.textContent = '🔍 Ищу вакансии (HH.ru → SuperJob.ru)...';
       await api('POST', '/vacancies/import', undefined, {
         role: profileBody.goal,
         areaId: profileBody.areaId || 1,
@@ -441,13 +446,13 @@ document.getElementById('on-finish').addEventListener('click', async () => {
       });
     }
 
-    statusEl.textContent = 'Пересчитываю рекомендации...';
+    statusEl.textContent = '🤖 ИИ анализирует вакансии и строит рекомендации...';
     await api('POST', '/recommendations/rebuild').catch(() => null);
     await generateInitialTrajectoryFromRecommendations(statusEl, trajectoryPrefs);
 
     document.getElementById('screen-onboarding').classList.remove('active');
     document.getElementById('screen-app').classList.add('active');
-    toast('Онбординг завершён');
+    toast('Готово! ИИ создал персональный план');
     loadDashboard();
   } catch(e) {
     statusEl.className = 'import-status error';
@@ -495,11 +500,16 @@ function buildOnboardingGoal() {
 }
 
 async function generateInitialTrajectoryFromRecommendations(statusEl, trajectoryPrefs) {
-  statusEl.textContent = 'Создаю первую траекторию через Ollama...';
+  statusEl.textContent = '🤖 ИИ строит персональную траекторию обучения...';
   const recs = await api('GET', '/recommendations', null, { page: 0, limit: 1, minScore: 0 }).catch(() => null);
   const first = recs?.data?.[0];
-  if (!first?.vacancyId) return;
+  if (!first?.vacancyId) {
+    statusEl.textContent = 'Рекомендации не найдены — траектория будет создана после импорта вакансий.';
+    return;
+  }
+  statusEl.textContent = `🤖 ИИ анализирует вакансию «${first.vacancy?.title || ''}» и строит план...`;
   await api('POST', '/trajectory/generate', trajectoryPrefs, { vacancyId: first.vacancyId }).catch(() => null);
+  statusEl.textContent = '✓ Персональная траектория создана ИИ';
 }
 
 // ──────────────────────────────
@@ -525,7 +535,6 @@ async function loadDashboard() {
     }
 
     renderTopSkills(d.topSkills || []);
-    renderGaps(d.skillGaps || []);
     renderWeekPlan(d.weekPlan || []);
     renderTopRecs(d.topRecommendations || []);
   } catch(e) {
@@ -579,7 +588,7 @@ function renderTopRecs(recs) {
   el.innerHTML = recs.map(r => `
     <div class="rec-item" onclick="openVacancy('${r.vacancyId}')">
       <div class="rec-title">${esc(r.title || r.vacancy?.title || '')}</div>
-      <div class="rec-employer">${esc(r.employer || r.vacancy?.employer || '')}</div>
+      <div class="rec-employer">${esc(r.employer || r.vacancy?.employer || '')}${r.vacancy?.area ? ' · ' + esc(r.vacancy.area) : ''}</div>
       <div class="rec-score-row">
         <span class="rec-score">${r.score}%</span>
         <span class="rec-salary">${salaryStr(r.salaryMin || r.vacancy?.salaryMin, r.salaryMax || r.vacancy?.salaryMax)}</span>
@@ -591,10 +600,43 @@ function renderTopRecs(recs) {
 
 // Rebuild
 document.getElementById('btn-rebuild').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-rebuild');
+  btn.disabled = true;
+  btn.textContent = '↻ Пересчитываю...';
   try {
     const res = await api('POST', '/recommendations/rebuild');
     toast('Пересчёт запущен (job: ' + res.data.jobId.slice(0,8) + '...)');
+    setTimeout(() => loadDashboard(), 2000);
   } catch(e) { toast(e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '↻ Пересчитать'; }
+});
+
+// Clear my vacancies
+document.getElementById('btn-clear-vacancies').addEventListener('click', async () => {
+  if (!confirm('Удалить все импортированные вакансии и рекомендации? Это действие нельзя отменить.')) return;
+  const btn = document.getElementById('btn-clear-vacancies');
+  btn.disabled = true;
+  try {
+    await api('DELETE', '/vacancies/clear');
+    toast('Вакансии удалены');
+    loadVacancies();
+    loadDashboard();
+  } catch(e) { toast(e.message, 'error'); }
+  finally { btn.disabled = false; }
+});
+
+// Admin: delete all vacancies
+document.getElementById('btn-admin-clear-all').addEventListener('click', async () => {
+  if (!confirm('ВНИМАНИЕ: удалить ВСЕ вакансии для ВСЕХ пользователей? Это нельзя отменить.')) return;
+  if (!confirm('Вы уверены? Все данные о вакансиях будут удалены безвозвратно.')) return;
+  const btn = document.getElementById('btn-admin-clear-all');
+  btn.disabled = true;
+  try {
+    await api('DELETE', '/admin/vacancies/all');
+    toast('Все вакансии удалены');
+    loadDashboard();
+  } catch(e) { toast(e.message, 'error'); }
+  finally { btn.disabled = false; }
 });
 
 // ──────────────────────────────
@@ -700,22 +742,30 @@ document.getElementById('btn-import-start').addEventListener('click', async () =
 });
 
 async function pollImport(jobId, statusEl) {
-  const max = 20; let i = 0;
+  const max = 40; let i = 0;
+  const sourceEmoji = { 'HH.ru': '🔶', 'SuperJob.ru': '🟢' };
   const tick = async () => {
     if (++i > max) return;
     try {
       const r = await api('GET', `/vacancies/import/${jobId}`);
       const d = r.data;
-      statusEl.textContent = `Статус: ${d.status} · Импортировано: ${d.imported ?? '?'} · Ошибки: ${d.errors ?? 0}${d.message ? ' · ' + d.message : ''}`;
-      if (d.status !== 'COMPLETED' && d.status !== 'FAILED') setTimeout(tick, 3000);
+      const src = d.message?.match(/Источник: (.+)/)?.[1] || '';
+      const srcTag = src ? ` ${sourceEmoji[src] || '·'} ${src}` : '';
+      statusEl.textContent = `${d.status === 'RUNNING' ? '⏳' : d.status === 'COMPLETED' ? '✓' : '✕'} Импортировано: ${d.imported ?? 0} · Ошибки: ${d.errors ?? 0}${srcTag}${d.message && !src ? ' · ' + d.message : ''}`;
+      if (d.status !== 'COMPLETED' && d.status !== 'FAILED') setTimeout(tick, 2500);
       else if (d.status === 'COMPLETED') {
-        statusEl.textContent = `Импортировано ${d.imported}. Нажми «Пересчитать», чтобы построить рекомендации.`;
+        statusEl.textContent = `✓ Импортировано ${d.imported} вакансий${srcTag}. Нажми «Пересчитать» для рекомендаций.`;
         toast(`Импортировано ${d.imported} вакансий`);
         loadVacancies();
+        setTimeout(() => {
+          document.getElementById('import-panel').classList.add('hidden');
+        }, 4000);
+      } else {
+        statusEl.className = 'import-status error';
       }
     } catch(_) {}
   };
-  setTimeout(tick, 3000);
+  setTimeout(tick, 2500);
 }
 
 // ──────────────────────────────
@@ -767,9 +817,9 @@ async function openVacancy(id) {
         </div>
       ` : ''}
       <div style="display:flex;gap:10px;margin-top:20px">
-        ${v.url ? `<a href="${v.url}" target="_blank" class="btn-primary" style="text-decoration:none">Открыть на HH.ru ↗</a>` : ''}
+        ${v.url ? `<a href="${v.url}" target="_blank" class="btn-primary" style="text-decoration:none">Открыть на ${esc(vacancySource(v.hhId))} ↗</a>` : ''}
         <button class="btn-accent" onclick="saveVacancy('${v.id}', this)">♡ Сохранить</button>
-        <button class="btn-ghost" onclick="generateTrajModal('${v.id}')">→ Создать траекторию</button>
+        <button class="btn-ghost" onclick='generateTrajModal(${v.id}, ${JSON.stringify(v.title||"")}, ${JSON.stringify(v.employer||"")}, ${JSON.stringify(v.area||"")})'>→ Создать траекторию</button>
       </div>
     `;
   } catch(e) {
@@ -777,11 +827,18 @@ async function openVacancy(id) {
   }
 }
 
-function generateTrajModal(vacancyId) {
+function generateTrajModal(vacancyId, title, employer, area) {
   closeModal();
+  state.pendingTrajVacancyId = vacancyId;
+  state.pendingTrajVacancy = { id: vacancyId, title: title || String(vacancyId), employer: employer || '', area: area || '' };
   document.querySelector('[data-page="trajectory"]').click();
-  loadTrajectoryVacancyOptions(vacancyId);
   document.getElementById('traj-gen-panel').classList.remove('hidden');
+}
+
+function vacancySource(hhId) {
+  if (!hhId) return 'HH.ru';
+  if (hhId.startsWith('sj_')) return 'SuperJob.ru';
+  return 'HH.ru';
 }
 
 document.getElementById('modal-close').addEventListener('click', closeModal);
@@ -795,25 +852,50 @@ async function loadRecs() {
   el.innerHTML = '<div class="loading">Загрузка...</div>';
   try {
     const res = await api('GET', '/recommendations', null, { page: state.recsPage, limit: 12, sortBy: 'score' });
-    if (!res.data?.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">◈</div>Нет рекомендаций. Сначала импортируйте вакансии.</div>'; return; }
+    if (!res.data?.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">◈</div>Нет рекомендаций. Сначала импортируй вакансии и нажми «Пересчитать».</div>';
+      return;
+    }
     el.innerHTML = res.data.map(r => `
       <div class="vac-card" onclick="openVacancy('${r.vacancyId}')">
         <div class="vac-header">
           <div class="vac-title">${esc(r.vacancy?.title || '')}</div>
-          <div class="vac-score">${r.score}%</div>
+          <div class="vac-score" title="AI-оценка соответствия">${r.score}%</div>
         </div>
-        <div class="vac-employer">${esc(r.vacancy?.employer || '')}</div>
+        <div class="vac-employer">${esc(r.vacancy?.employer || '')}${r.vacancy?.area ? ' · ' + esc(r.vacancy.area) : ''}</div>
         <div class="vac-meta">
           ${r.vacancy?.salaryMin || r.vacancy?.salaryMax ? `<span class="vac-badge badge-salary">${salaryStr(r.vacancy.salaryMin, r.vacancy.salaryMax)}</span>` : ''}
+          <span class="vac-badge" style="background:rgba(99,102,241,.15);color:#818cf8;font-size:10px">ИИ</span>
         </div>
         <div class="rec-gaps">${(r.gaps||[]).map(g=>`<span class="tag">${esc(g.skill)}</span>`).join('')}</div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:8px">
-          SBERT ${r.sbertScore||'—'} · Coverage ${r.skillsCoverage||'—'}%
+          Семантика: ${r.sbertScore||'—'}% · Навыки: ${r.skillsCoverage||'—'}%
+        </div>
+        <div id="ai-explain-${r.vacancyId}" style="margin-top:8px" onclick="event.stopPropagation()">
+          <button class="btn-sm" onclick="loadAiExplain('${r.vacancyId}')">🤖 Почему ИИ рекомендует?</button>
         </div>
       </div>
     `).join('');
     renderPagination(res.pagination, 'recs-pagination', p => { state.recsPage = p; loadRecs(); });
   } catch(e) { el.innerHTML = `<div class="empty-state">${e.message}</div>`; }
+}
+
+async function loadAiExplain(vacancyId) {
+  const el = document.getElementById('ai-explain-' + vacancyId);
+  if (!el) return;
+  el.innerHTML = '<span style="font-size:12px;color:var(--text-muted)">🤖 Ollama анализирует...</span>';
+  try {
+    const res = await api('GET', `/recommendations/${vacancyId}/explain`);
+    const d = res.data;
+    const icon = d.aiGenerated ? '🤖' : '📊';
+    el.innerHTML = `
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.6;padding:10px 12px;background:var(--card-bg);border-radius:8px;border-left:3px solid var(--accent);margin-top:6px">
+        ${icon} <em>${esc(d.explanation)}</em>
+      </div>
+    `;
+  } catch(e) {
+    el.innerHTML = `<span style="font-size:11px;color:var(--danger)">${esc(e.message)}</span>`;
+  }
 }
 
 // ──────────────────────────────
@@ -1010,21 +1092,40 @@ function hideTrajectoryLoader() {
 async function loadTrajectoryVacancyOptions(selectedId) {
   const select = document.getElementById('gen-vacancy-id');
   if (!select) return;
-  select.innerHTML = '<option value="">Загрузка вакансий...</option>';
+
+  // If we came from a vacancy modal we already have the vacancy data — show it immediately
+  // so the user can generate a trajectory without waiting for the list to load.
+  const pending = state.pendingTrajVacancy || null;
+  state.pendingTrajVacancy = null;
+  if (selectedId && pending) {
+    const label = [pending.title, pending.employer, pending.area].filter(Boolean).join(' · ');
+    select.innerHTML = `<option value="${selectedId}" selected>${esc(label)}</option>`;
+  } else {
+    select.innerHTML = '<option value="">Загрузка вакансий...</option>';
+  }
+
+  // Load the full list in the background so the user can also pick a different vacancy
   try {
-    const res = await api('GET', '/vacancies', null, { page: 0, size: 30, sort: 'fetchedAt,desc' });
+    const res = await api('GET', '/vacancies', null, { page: 0, size: 50, sort: 'fetchedAt,desc' });
     state.trajectoryVacancies = res.data || [];
-    if (!state.trajectoryVacancies.length) {
+    if (state.trajectoryVacancies.length) {
+      // If list doesn't contain the pending vacancy (filter edge-case), add it manually
+      const ids = state.trajectoryVacancies.map(v => String(v.id));
+      let vacancies = state.trajectoryVacancies;
+      if (selectedId && pending && !ids.includes(String(selectedId))) {
+        vacancies = [pending, ...vacancies];
+      }
+      select.innerHTML = vacancies.map(v => `
+        <option value="${v.id}" ${String(v.id) === String(selectedId) ? 'selected' : ''}>
+          ${esc(v.title)}${v.employer ? ' · ' + esc(v.employer) : ''}${v.area ? ' · ' + esc(v.area) : ''}
+        </option>
+      `).join('');
+    } else if (!pending) {
       select.innerHTML = '<option value="">Сначала импортируй вакансии</option>';
-      return;
     }
-    select.innerHTML = state.trajectoryVacancies.map(v => `
-      <option value="${v.id}" ${String(v.id) === String(selectedId) ? 'selected' : ''}>
-        ${esc(v.title)}${v.employer ? ' · ' + esc(v.employer) : ''}${v.area ? ' · ' + esc(v.area) : ''}
-      </option>
-    `).join('');
-  } catch(e) {
-    select.innerHTML = '<option value="">Не удалось загрузить вакансии</option>';
+    // if list empty but we have pending — keep the pre-populated option, generation will work
+  } catch(_) {
+    if (!pending) select.innerHTML = '<option value="">Не удалось загрузить вакансии</option>';
   }
 }
 
@@ -1173,6 +1274,12 @@ document.addEventListener('click', e => {
 //  PROFILE
 // ──────────────────────────────
 async function loadProfile() {
+  // Show admin panel if user has ROLE_ADMIN
+  const adminPanel = document.getElementById('admin-panel');
+  if (adminPanel) {
+    const isAdmin = state.user?.roles?.includes('ROLE_ADMIN');
+    adminPanel.style.display = isAdmin ? '' : 'none';
+  }
   try {
     await loadAreas();
     const [pr, sr] = await Promise.all([

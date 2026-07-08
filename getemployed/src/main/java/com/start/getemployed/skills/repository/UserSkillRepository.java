@@ -14,4 +14,6 @@ public interface UserSkillRepository extends JpaRepository<UserSkill, Long> {
   boolean existsByUserIdAndSkillId(Long userId, Long skillId);
 
   long countByUserId(Long userId);
+
+  long countByUserIdAndLevelGreaterThanEqual(Long userId, Short level);
 }

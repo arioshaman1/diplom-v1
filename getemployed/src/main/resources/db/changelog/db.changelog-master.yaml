@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/002-trajectory-api.yaml
   - include:
       file: db/changelog/003-user-vacancies.yaml
+  - include:
+      file: db/changelog/004-widen-hh-id.yaml

@@ -69,7 +69,7 @@ public class VacancyDtos {
   public record Gap(String skill, String importance) {}
 
   public record VacancySummary(
-      String title, String employer, Integer salaryMin, Integer salaryMax) {}
+      String title, String employer, String area, Integer salaryMin, Integer salaryMax) {}
 
   public record RecommendationDetail(
       Long vacancyId,
@@ -103,4 +103,6 @@ public class VacancyDtos {
       int affectedPercent) {}
 
   public record RebuildAccepted(String jobId, String status, long vacancyCount) {}
+
+  public record ExplainResponse(String explanation, boolean aiGenerated) {}
 }

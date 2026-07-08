@@ -200,7 +200,7 @@
             </div>
             <div class="form-group">
               <label>Импорт вакансий</label>
-              <label class="switch-row"><input type="checkbox" id="on-import" checked /> Подтянуть вакансии с HH</label>
+              <label class="switch-row"><input type="checkbox" id="on-import" checked /> Импортировать вакансии (HH.ru → SuperJob.ru)</label>
             </div>
           </div>
           <div id="onboarding-status" class="import-status hidden"></div>
@@ -289,12 +289,6 @@
             <div id="top-skills-list" class="skill-bars"></div>
           </div>
 
-          <!-- Skill gaps -->
-          <div class="card card-gaps">
-            <div class="card-header">Пробелы</div>
-            <div id="skill-gaps-list" class="gaps-list"></div>
-          </div>
-
           <!-- Week plan -->
           <div class="card card-week">
             <div class="card-header">План на неделю</div>
@@ -302,8 +296,8 @@
           </div>
 
           <!-- Top recommendations -->
-          <div class="card card-recs">
-            <div class="card-header">Лучшие совпадения</div>
+          <div class="card card-recs" style="grid-column:span 2">
+            <div class="card-header">Лучшие совпадения ИИ</div>
             <div id="top-recs-list" class="recs-list"></div>
           </div>
         </div>
@@ -316,7 +310,10 @@
             <h1 class="page-title">Вакансии</h1>
             <p class="page-sub">Все доступные позиции</p>
           </div>
-          <button class="btn-accent" id="btn-import-open">+ Импортировать</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-accent" id="btn-import-open">+ Импортировать</button>
+            <button class="btn-danger" id="btn-clear-vacancies">🗑 Очистить мои вакансии</button>
+          </div>
         </header>
 
         <!-- Import panel -->
@@ -369,9 +366,11 @@
       <!-- ── RECOMMENDATIONS ── -->
       <section class="page" id="page-recommendations">
         <header class="page-header">
-          <h1 class="page-title">Рекомендации</h1>
+          <h1 class="page-title">Рекомендации ИИ</h1>
         </header>
-
+        <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--text-muted);line-height:1.5">
+          🤖 <strong>Рекомендации строятся ИИ:</strong> Ollama LLM (llama3.2) анализирует соответствие профиля и навыков требованиям вакансий (семантика + покрытие навыков). Источники: HH.ru → SuperJob.ru. Нажми <em>«Почему ИИ рекомендует?»</em> для персонального объяснения.
+        </div>
         <div class="recs-grid-full" id="recs-full-list"></div>
         <div class="pagination" id="recs-pagination"></div>
       </section>
@@ -545,6 +544,13 @@
           <div class="card card-stats-profile">
             <div class="card-header">Прогресс</div>
             <div id="profile-stats" class="profile-stats-grid"></div>
+          </div>
+
+          <!-- Admin panel — shown only for ROLE_ADMIN -->
+          <div class="card" id="admin-panel" style="display:none;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.05)">
+            <div class="card-header" style="color:var(--danger)">Администратор</div>
+            <p style="font-size:13px;color:var(--text-muted);margin:0 0 14px">Опасные операции. Применяются ко всем пользователям.</p>
+            <button class="btn-danger" id="btn-admin-clear-all">🗑 Удалить ВСЕ вакансии (все пользователи)</button>
           </div>
         </div>
       </section>

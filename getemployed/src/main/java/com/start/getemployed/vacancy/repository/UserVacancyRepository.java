@@ -11,4 +11,6 @@ public interface UserVacancyRepository extends JpaRepository<UserVacancy, Long> 
   List<UserVacancy> findByUserIdOrderByImportedAtDesc(Long userId);
 
   long countByUserId(Long userId);
+
+  void deleteByUserId(Long userId);
 }

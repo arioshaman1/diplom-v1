@@ -238,6 +238,60 @@ public class AiTrajectoryPlanner {
     return curatedResources(skillName).stream().limit(3).toList();
   }
 
+  public Optional<String> explainRecommendation(
+      String profileContext,
+      List<String> userSkills,
+      Vacancy vacancy,
+      List<String> vacancySkills,
+      int totalScore,
+      int semanticScore,
+      int coverageScore) {
+    ChatClient.Builder builder = chatClientBuilder.getIfAvailable();
+    if (builder == null || !isModelAvailable()) {
+      return Optional.empty();
+    }
+    try {
+      String prompt =
+          """
+          Ты карьерный консультант. Напиши персонализированное объяснение (4-5 предложений),
+          почему эта конкретная вакансия подходит пользователю. Обращайся на "вы".
+          Без заголовков, только связный русский текст.
+
+          Обязательно включи в ответ:
+          1. Почему направление вакансии совпадает с профилем и целями пользователя.
+          2. Конкретные навыки пользователя, которые востребованы именно в этой роли.
+          3. Что даст эта работа пользователю — рост, опыт или смена направления.
+          4. Практический совет: что сделать прямо сейчас (отправить резюме, подучить 1-2 навыка).
+          Если есть заметные пробелы в навыках — упомяни 1-2 самых важных для подготовки.
+
+          Профиль пользователя: %s
+          Навыки пользователя: %s
+
+          Вакансия: %s (%s)
+          Навыки и требования вакансии: %s
+
+          Итоговое совпадение: %d%% (семантика: %d%%, покрытие навыков: %d%%)
+          """
+              .formatted(
+                  safe(profileContext),
+                  userSkills,
+                  safe(vacancy.getTitle()),
+                  safe(vacancy.getEmployer()),
+                  vacancySkills,
+                  totalScore,
+                  semanticScore,
+                  coverageScore);
+      String response = builder.build().prompt(prompt).call().content();
+      if (response != null && !response.isBlank()) {
+        return Optional.of(response.trim());
+      }
+      return Optional.empty();
+    } catch (RuntimeException ex) {
+      log.debug("AI explain recommendation failed: {}", ex.getMessage());
+      return Optional.empty();
+    }
+  }
+
   private Optional<TrajectoryPlan> callModel(
       Vacancy vacancy,
       List<String> requiredSkills,

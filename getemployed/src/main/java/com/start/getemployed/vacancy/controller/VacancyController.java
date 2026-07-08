@@ -12,7 +12,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -116,7 +124,7 @@ public class VacancyController {
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int limit,
       @RequestParam(defaultValue = "score") String sortBy,
-      @RequestParam(defaultValue = "60") int minScore) {
+      @RequestParam(defaultValue = "0") int minScore) {
     Page<VacancyDtos.RecommendationItem> result =
         vacancyService.recommendations(
             userContext.currentUser(authentication), page, limit, sortBy, minScore);
@@ -148,5 +156,18 @@ public class VacancyController {
   public ApiEnvelope<VacancyDtos.RebuildAccepted> rebuild(Authentication authentication) {
     User user = userContext.currentUser(authentication);
     return ApiEnvelope.of(vacancyService.rebuild(user));
+  }
+
+  @DeleteMapping("/vacancies/clear")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void clearMyVacancies(Authentication authentication) {
+    vacancyService.clearUserVacancies(userContext.currentUser(authentication));
+  }
+
+  @GetMapping("/recommendations/{vacancyId}/explain")
+  public ApiEnvelope<VacancyDtos.ExplainResponse> explain(
+      Authentication authentication, @PathVariable Long vacancyId) {
+    return ApiEnvelope.of(
+        vacancyService.explainRecommendation(userContext.currentUser(authentication), vacancyId));
   }
 }

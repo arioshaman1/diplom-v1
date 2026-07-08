@@ -63,6 +63,14 @@ spring:
 
 
 
+superjob:
+  # Get your API key at https://api.superjob.ru — register an app, use the client_secret value
+  api-key: ${SUPERJOB_API_KEY:}
+
+hh:
+  client-id: ${HH_CLIENT_ID:}
+  client-secret: ${HH_CLIENT_SECRET:}
+
 app:
   ai:
     trajectory-timeout-seconds: ${OLLAMA_TRAJECTORY_TIMEOUT_SECONDS:60}

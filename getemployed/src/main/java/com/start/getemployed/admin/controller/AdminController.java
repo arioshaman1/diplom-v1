@@ -9,6 +9,7 @@ import com.start.getemployed.entity.User;
 import com.start.getemployed.exception.ResourceAlreadyExistsException;
 import com.start.getemployed.exception.ResourceNotFoundException;
 import com.start.getemployed.skills.repository.SkillRepository;
+import com.start.getemployed.vacancy.service.VacancyService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
@@ -36,6 +37,7 @@ public class AdminController {
 
   private final UserRepository userRepository;
   private final SkillRepository skillRepository;
+  private final VacancyService vacancyService;
 
   @GetMapping("/users")
   public PageEnvelope<List<UserAdminItem>> users() {
@@ -114,6 +116,12 @@ public class AdminController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSkill(@PathVariable Long id) {
     skillRepository.deleteById(id);
+  }
+
+  @DeleteMapping("/vacancies/all")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteAllVacancies() {
+    vacancyService.clearAllVacancies();
   }
 
   @PostMapping("/vacancies/reimport")

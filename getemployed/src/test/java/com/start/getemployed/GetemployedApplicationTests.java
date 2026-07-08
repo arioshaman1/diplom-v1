@@ -13,4 +13,3 @@ class GetemployedApplicationTests {
   @Test
   void contextLoads() {}
 }
-

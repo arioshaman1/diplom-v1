@@ -9,4 +9,6 @@ public interface VacancySkillRepository extends JpaRepository<VacancySkill, Long
   List<VacancySkill> findByVacancyId(Long vacancyId);
 
   boolean existsByVacancyIdAndSkillId(Long vacancyId, Long skillId);
+
+  void deleteByVacancyId(Long vacancyId);
 }

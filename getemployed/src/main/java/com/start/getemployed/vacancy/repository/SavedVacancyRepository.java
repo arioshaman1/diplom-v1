@@ -13,4 +13,6 @@ public interface SavedVacancyRepository extends JpaRepository<SavedVacancy, Long
   Optional<SavedVacancy> findByUserIdAndVacancyId(Long userId, Long vacancyId);
 
   boolean existsByUserIdAndVacancyId(Long userId, Long vacancyId);
+
+  void deleteByUserId(Long userId);
 }
